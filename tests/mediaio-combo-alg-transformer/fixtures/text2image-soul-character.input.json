@@ -1,0 +1,22 @@
+{
+  "inputs": {
+    "prompt": "A cinematic portrait with soft natural light",
+    "ratio": "2:3",
+    "concurrency_patterns": 4
+  },
+  "context": {
+    "countryLimited": "not_t3",
+    "isPublic": true,
+    "isSubscribed": true,
+    "templateId": "60005280",
+    "thumbnailUrl": "https://example.invalid/tomoviee-lite.jpg",
+    "tracking": {
+      "ui_mode": "desktop",
+      "pscenario": "general",
+      "pfunction": "text_to_image",
+      "pfunction_type": "ai_image",
+      "pfunction_display": "function",
+      "template_origin_entity": "mi"
+    }
+  }
+}
