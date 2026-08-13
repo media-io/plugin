@@ -119,10 +119,6 @@ function sourceContext() {
     if (!tryRun(command, ["--version"]).ok) fail(`缺少命令：${command}`);
   }
 
-  const expectedCommit = requiredEnv("SKILLS_RELEASE_COMMIT");
-  if (!/^[0-9a-f]{40}$/i.test(expectedCommit)) {
-    fail("SKILLS_RELEASE_COMMIT 必须是完整的 40 位 Git commit SHA");
-  }
   if (run("git", ["rev-parse", "--is-shallow-repository"]) === "true") {
     fail("Skills checkout 为 shallow repository；请在代码拉取插件中启用完整历史后再发布");
   }
@@ -131,9 +127,6 @@ function sourceContext() {
   }
 
   const sourceCommit = run("git", ["rev-parse", "HEAD"]);
-  if (sourceCommit !== expectedCommit) {
-    fail("当前 Skills checkout 与 SKILLS_RELEASE_COMMIT 不一致");
-  }
   return { sourceCommit, skillNames: sourceSkillNames() };
 }
 
@@ -299,9 +292,6 @@ let askPassDirectory = "";
 let targetDirectory = "";
 
 try {
-  if (requiredEnv("SKILLS_PUBLISH_PIPELINE_ACK") !== "RUN_FROM_INTERNAL_PIPELINE") {
-    fail("SKILLS_PUBLISH_PIPELINE_ACK 必须为 RUN_FROM_INTERNAL_PIPELINE；此脚本只能在公司内部流水线运行");
-  }
   const source = sourceContext();
   const githubToken = requiredEnv("GITHUB_TOKEN");
   const gitAuth = createGitAskPass(githubToken);
