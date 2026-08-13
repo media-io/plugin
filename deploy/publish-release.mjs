@@ -1,35 +1,28 @@
 #!/usr/bin/env node
 /**
- * 在公司内部流水线中将本仓库的 skills/ 同步到 media-io/skills 根目录。
+ * 在公司内部流水线中将 media-plugin-main 源码镜像同步到 GitHub。
  *
  * 用法：
  *   node deploy/publish-release.mjs sync-source
  *   node deploy/publish-release.mjs force-github-baseline
  *
- * 本脚本只用于公司内部流水线；不涉及 npm 发布，也不依赖 gh、jq 或 GitHub Actions。
+ * 不涉及 npm 或 binary 发布；只依赖 Node.js 与 Git。
  */
 
 import { spawnSync } from "node:child_process";
 import {
-  cpSync,
-  lstatSync,
   mkdtempSync,
-  readFileSync,
-  readdirSync,
-  renameSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const packageRoot = resolve(new URL("..", import.meta.url).pathname);
-const skillsDirectory = join(packageRoot, "skills");
-const githubRepository = "media-io/skills";
-const githubBranch = "main";
-const manifestName = ".mediaio-skills-sync.json";
 const allowedOperations = new Set(["sync-source", "force-github-baseline"]);
+const defaultGithubRepository = "media-io/plugin";
+const defaultGithubBranch = "main";
+const githubRemoteName = "github-plugin-publish";
 
 function fail(message) {
   throw new Error(message);
@@ -62,72 +55,20 @@ function tryRun(command, args, options = {}) {
   });
   return {
     ok: !result.error && result.status === 0,
-    stdout: (result.stdout ?? "").trim(),
   };
-}
-
-function readJson(file) {
-  try {
-    return JSON.parse(readFileSync(file, "utf8"));
-  } catch (error) {
-    fail(`无法读取 JSON 文件 ${file}：${error.message}`);
-  }
-}
-
-function pathExists(path) {
-  try {
-    lstatSync(path);
-    return true;
-  } catch (error) {
-    if (error.code === "ENOENT") return false;
-    throw error;
-  }
-}
-
-function assertNoSymbolicLinks(directory) {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    const path = join(directory, entry.name);
-    if (entry.isSymbolicLink()) fail(`Skills 源目录不允许符号链接：${path}`);
-    if (entry.isDirectory()) assertNoSymbolicLinks(path);
-  }
-}
-
-function sourceSkillNames() {
-  if (!pathExists(skillsDirectory) || !statSync(skillsDirectory).isDirectory()) {
-    fail(`Skills 源目录不存在：${skillsDirectory}`);
-  }
-  assertNoSymbolicLinks(skillsDirectory);
-
-  const names = readdirSync(skillsDirectory, { withFileTypes: true })
-    .filter((entry) => entry.name !== ".DS_Store")
-    .map((entry) => {
-      if (!entry.isDirectory()) fail(`Skills 源目录只能包含 Skill 子目录：${entry.name}`);
-      const skillFile = join(skillsDirectory, entry.name, "SKILL.md");
-      if (!pathExists(skillFile) || !statSync(skillFile).isFile()) {
-        fail(`Skill 子目录缺少 SKILL.md：${entry.name}`);
-      }
-      return entry.name;
-    })
-    .sort();
-
-  if (names.length === 0) fail("Skills 源目录不能为空");
-  return names;
 }
 
 function sourceContext() {
   for (const command of ["git", "node"]) {
     if (!tryRun(command, ["--version"]).ok) fail(`缺少命令：${command}`);
   }
-
   if (run("git", ["rev-parse", "--is-shallow-repository"]) === "true") {
-    fail("Skills checkout 为 shallow repository；请在代码拉取插件中启用完整历史后再发布");
+    fail("MAIN checkout 为 shallow repository；请在代码拉取插件中启用完整历史后再发布");
   }
   if (run("git", ["status", "--porcelain"])) {
-    fail("Skills checkout 包含未提交改动，拒绝发布");
+    fail("MAIN checkout 包含未提交改动，拒绝发布");
   }
-
-  const sourceCommit = run("git", ["rev-parse", "HEAD"]);
-  return { sourceCommit, skillNames: sourceSkillNames() };
+  return { mainCommit: run("git", ["rev-parse", "HEAD"]) };
 }
 
 function createGitAskPass(token) {
@@ -149,129 +90,47 @@ function createGitAskPass(token) {
   };
 }
 
-function cloneGithubSkills(gitAuth) {
-  const directory = mkdtempSync(join(tmpdir(), "mediaio-skills-publish-"));
+function configureGithubRemote(gitAuth, githubRepository) {
   const remoteUrl = `https://github.com/${githubRepository}.git`;
-  run("git", ["clone", "--quiet", "--branch", githubBranch, "--single-branch", remoteUrl, directory], {
-    env: gitAuth.env,
-  });
-  if (run("git", ["rev-parse", "--is-shallow-repository"], { cwd: directory, env: gitAuth.env }) === "true") {
-    fail("GitHub Skills checkout 不应为 shallow repository");
+  if (tryRun("git", ["remote", "get-url", githubRemoteName], { env: gitAuth.env }).ok) {
+    run("git", ["remote", "set-url", githubRemoteName, remoteUrl], { env: gitAuth.env });
+  } else {
+    run("git", ["remote", "add", githubRemoteName, remoteUrl], { env: gitAuth.env });
   }
-  if (run("git", ["status", "--porcelain"], { cwd: directory, env: gitAuth.env })) {
-    fail("GitHub Skills checkout 不干净，拒绝同步");
-  }
-  return directory;
 }
 
-function isSafeSkillName(name) {
-  return typeof name === "string"
-    && name.length > 0
-    && name !== "."
-    && name !== ".."
-    && !name.includes("/")
-    && !name.includes("\\");
+function syncSource(gitAuth, mainCommit, githubBranch) {
+  run("git", ["fetch", "--no-tags", githubRemoteName, githubBranch], { env: gitAuth.env });
+  if (!tryRun("git", ["merge-base", "--is-ancestor", `${githubRemoteName}/${githubBranch}`, mainCommit], { env: gitAuth.env }).ok) {
+    fail(`GitHub ${githubBranch} 不是当前 MAIN 提交的祖先；请先人工完成镜像基线对齐，不能 force push`);
+  }
+  run("git", ["push", githubRemoteName, `${mainCommit}:refs/heads/${githubBranch}`], { env: gitAuth.env });
+  console.log(`[publish] source synced: ${githubBranch} -> ${mainCommit}`);
 }
 
-function readManifest(targetDirectory) {
-  const manifestPath = join(targetDirectory, manifestName);
-  if (!pathExists(manifestPath)) {
-    fail(`GitHub Skills 仓库尚未建立受管基线；请在明确授权后仅执行一次 force-github-baseline：${manifestPath}`);
+// 仅用于首次把内网 MAIN 建立为 GitHub main 的镜像基线。
+// 常规发布绝不能调用此方法，仍由 syncSource 只允许 fast-forward。
+function forceGithubBaseline(gitAuth, mainCommit, githubRepository, githubBranch) {
+  if (githubRepository !== defaultGithubRepository || githubBranch !== defaultGithubBranch) {
+    fail("force-github-baseline 仅允许更新 media-io/plugin 的 main 分支");
   }
-  const manifest = readJson(manifestPath);
-  if (
-    manifest.schema_version !== 1
-    || manifest.source_directory !== "skills"
-    || !Array.isArray(manifest.managed_skill_names)
-    || !manifest.managed_skill_names.every(isSafeSkillName)
-    || new Set(manifest.managed_skill_names).size !== manifest.managed_skill_names.length
-  ) {
-    fail(`GitHub Skills 同步清单格式错误：${manifestPath}`);
-  }
-  return manifest;
-}
-
-function replaceEntry(sourcePath, targetPath) {
-  if (pathExists(targetPath)) rmSync(targetPath, { recursive: true, force: true });
-  cpSync(sourcePath, targetPath, { recursive: true, errorOnExist: true });
-}
-
-function writeManifest(targetDirectory, sourceCommit, skillNames) {
-  const manifestPath = join(targetDirectory, manifestName);
-  const temporaryPath = join(targetDirectory, `${manifestName}.tmp`);
-  const manifest = {
-    schema_version: 1,
-    source_repository: "media-plugin-main",
-    source_directory: "skills",
-    source_commit: sourceCommit,
-    managed_skill_names: skillNames,
-  };
-  writeFileSync(temporaryPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o644 });
-  renameSync(temporaryPath, manifestPath);
-}
-
-function synchronizeManagedSkills(targetDirectory, source) {
-  const manifest = readManifest(targetDirectory);
-  const previouslyManaged = new Set(manifest.managed_skill_names);
-  const desired = new Set(source.skillNames);
-
-  for (const name of source.skillNames) {
-    const targetPath = join(targetDirectory, name);
-    if (!previouslyManaged.has(name) && pathExists(targetPath)) {
-      fail(`GitHub Skills 根目录已有未受管路径，拒绝覆盖：${name}；请先人工处理，或在明确授权后执行一次 force-github-baseline`);
-    }
-  }
-  for (const name of previouslyManaged) {
-    if (!desired.has(name)) rmSync(join(targetDirectory, name), { recursive: true, force: true });
-  }
-  for (const name of source.skillNames) {
-    replaceEntry(join(skillsDirectory, name), join(targetDirectory, name));
-  }
-  writeManifest(targetDirectory, source.sourceCommit, source.skillNames);
-}
-
-// 仅用于首次建立发布基线。它会删除 GitHub Skills 仓库根目录中除 .git 外的全部内容，
-// 再用当前 skills/ 快照替换；随后仍以普通提交推送，不改写 Git 历史。
-function forceGithubBaseline(targetDirectory, source) {
-  if (requiredEnv("GITHUB_BASELINE_FORCE_ACK") !== "REPLACE_GITHUB_SKILLS_ROOT_WITH_INTERNAL_SKILLS") {
-    fail("必须将 GITHUB_BASELINE_FORCE_ACK 设置为 REPLACE_GITHUB_SKILLS_ROOT_WITH_INTERNAL_SKILLS 才能执行一次性基线覆盖");
-  }
-  for (const entry of readdirSync(targetDirectory)) {
-    if (entry !== ".git") rmSync(join(targetDirectory, entry), { recursive: true, force: true });
-  }
-  for (const name of source.skillNames) {
-    replaceEntry(join(skillsDirectory, name), join(targetDirectory, name));
-  }
-  writeManifest(targetDirectory, source.sourceCommit, source.skillNames);
-}
-
-function commitAndPush(targetDirectory, gitAuth, sourceCommit) {
-  if (!run("git", ["status", "--porcelain"], { cwd: targetDirectory, env: gitAuth.env })) {
-    console.log(`[publish] skills already synced: ${githubBranch} <- ${sourceCommit}`);
-    return;
+  if (requiredEnv("GITHUB_BASELINE_FORCE_ACK") !== "REPLACE_GITHUB_MAIN_WITH_INTERNAL_PLUGIN") {
+    fail("必须将 GITHUB_BASELINE_FORCE_ACK 设置为 REPLACE_GITHUB_MAIN_WITH_INTERNAL_PLUGIN 才能执行一次性基线覆盖");
   }
 
-  run("git", ["config", "user.name", process.env.GIT_COMMITTER_NAME ?? "mediaio-release-bot"], {
-    cwd: targetDirectory,
-    env: gitAuth.env,
-  });
-  run("git", ["config", "user.email", process.env.GIT_COMMITTER_EMAIL ?? "mediaio-release-bot@users.noreply.github.com"], {
-    cwd: targetDirectory,
-    env: gitAuth.env,
-  });
-  run("git", ["add", "--all"], { cwd: targetDirectory, env: gitAuth.env });
-  run("git", ["-c", "commit.gpgSign=false", "commit", "-m", `chore(skills): sync ${sourceCommit}`], {
-    cwd: targetDirectory,
-    env: gitAuth.env,
-  });
-  const targetCommit = run("git", ["rev-parse", "HEAD"], { cwd: targetDirectory, env: gitAuth.env });
-  run("git", ["push", "origin", `HEAD:refs/heads/${githubBranch}`], { cwd: targetDirectory, env: gitAuth.env });
-  const remoteHead = run("git", ["ls-remote", "origin", `refs/heads/${githubBranch}`], {
-    cwd: targetDirectory,
-    env: gitAuth.env,
-  }).split(/\s+/)[0];
-  if (remoteHead !== targetCommit) fail(`GitHub ${githubBranch} 同步后提交校验失败`);
-  console.log(`[publish] skills synced: ${githubRepository}/${githubBranch} -> ${targetCommit}`);
+  run("git", ["fetch", "--no-tags", githubRemoteName, githubBranch], { env: gitAuth.env });
+  const remoteCommit = run("git", ["rev-parse", `${githubRemoteName}/${githubBranch}`], { env: gitAuth.env });
+  console.log(`[publish] baseline force: ${githubRepository}/${githubBranch} ${remoteCommit} -> ${mainCommit}`);
+  run("git", [
+    "push",
+    `--force-with-lease=refs/heads/${githubBranch}:${remoteCommit}`,
+    githubRemoteName,
+    `${mainCommit}:refs/heads/${githubBranch}`,
+  ], { env: gitAuth.env });
+
+  const remoteHead = run("git", ["ls-remote", githubRemoteName, `refs/heads/${githubBranch}`], { env: gitAuth.env }).split(/\s+/)[0];
+  if (remoteHead !== mainCommit) fail(`GitHub ${githubBranch} 基线覆盖后提交校验失败`);
+  console.log(`[publish] baseline force completed: ${githubBranch} -> ${mainCommit}`);
 }
 
 function printUsage() {
@@ -288,27 +147,23 @@ if (process.argv.length > 3 || !allowedOperations.has(operation)) {
   fail(`不支持的发布阶段：${operation}`);
 }
 
+const githubRepository = process.env.GITHUB_REPOSITORY ?? defaultGithubRepository;
+const githubBranch = process.env.GITHUB_BRANCH ?? defaultGithubBranch;
 let askPassDirectory = "";
-let targetDirectory = "";
 
 try {
   const source = sourceContext();
-  const githubToken = requiredEnv("GITHUB_TOKEN");
-  const gitAuth = createGitAskPass(githubToken);
+  const gitAuth = createGitAskPass(requiredEnv("GITHUB_TOKEN"));
   askPassDirectory = gitAuth.directory;
-  targetDirectory = cloneGithubSkills(gitAuth);
+  configureGithubRemote(gitAuth, githubRepository);
 
   console.log(`[publish] phase: ${operation}`);
-  console.log(`[publish] source commit: ${source.sourceCommit}`);
-  console.log(`[publish] skills: ${source.skillNames.join(", ")}`);
-
+  console.log(`[publish] MAIN commit: ${source.mainCommit}`);
   if (operation === "sync-source") {
-    synchronizeManagedSkills(targetDirectory, source);
+    syncSource(gitAuth, source.mainCommit, githubBranch);
   } else {
-    forceGithubBaseline(targetDirectory, source);
+    forceGithubBaseline(gitAuth, source.mainCommit, githubRepository, githubBranch);
   }
-  commitAndPush(targetDirectory, gitAuth, source.sourceCommit);
 } finally {
-  if (targetDirectory) rmSync(targetDirectory, { recursive: true, force: true });
   if (askPassDirectory) rmSync(askPassDirectory, { recursive: true, force: true });
 }
