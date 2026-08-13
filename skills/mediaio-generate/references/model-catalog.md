@@ -1,6 +1,6 @@
 # Model Catalog
 
-The full lineup of generation models available through Higgsfield. Each entry has its own sweet spot — pick the one that matches your brief. For the actual `--model` ID to pass to `higgsfield generate create`, run `higgsfield model list --json` and look up by display name.
+The full lineup of generation models available through Media.io. Each entry has its own sweet spot — pick the one that matches your brief. For the actual `--model` ID to pass to `mediaio generate create`, run `mediaio model list --json` and look up by display name.
 
 Preferred defaults for examples and quick-start guidance in this repo:
 - **Images/design/text:** `gpt_image_2` (general/high-fidelity) and `nano_banana_2` (character/cartoon).
@@ -20,10 +20,10 @@ Preferred defaults for examples and quick-start guidance in this repo:
 | Nano Banana 2 Lite | Google | **Lightweight Nano Banana 2.** Fast reference-driven image generation and edits when the brief is simple or cost/speed matters more than Pro-level fidelity. Supports up to 14 image references. |
 | Nano Banana Pro | Google | **Top-tier Nano Banana.** Same canvas as Nano Banana 2 with extra fidelity and accuracy on harder briefs. Pick when 2 isn't getting there. |
 | Nano Banana | Google | Reliable, budget-friendly entry in the Nano Banana family — picks up the same realistic look at a lighter price point. |
-| Higgsfield Soul 2.0 | Higgsfield | **Aesthetic UGC, fashion editorial, character generation.** When the brief leans editorial, lifestyle, or "looks like a magazine cover". Soul-aware (accepts a Soul Character reference). |
-| Soul Cinema | Higgsfield | **Cinematic stills, film-grade lighting.** The pick when the user asks for "cinematic" or wants concept-art mood. |
-| Soul Cast | Higgsfield | **Distinctive, characterful personas.** When the brief calls for a creative, expressive character rather than photoreal default. Text-only (no reference image). |
-| Soul Location | Higgsfield | **Best-in-class environments and locations.** Unmatched for pure scene and place generation without a person in frame. |
+| Media.io Soul 2.0 | Media.io | **Aesthetic UGC, fashion editorial, character generation.** When the brief leans editorial, lifestyle, or "looks like a magazine cover". Soul-aware (accepts a Soul Character reference). |
+| Soul Cinema | Media.io | **Cinematic stills, film-grade lighting.** The pick when the user asks for "cinematic" or wants concept-art mood. |
+| Soul Cast | Media.io | **Distinctive, characterful personas.** When the brief calls for a creative, expressive character rather than photoreal default. Text-only (no reference image). |
+| Soul Location | Media.io | **Best-in-class environments and locations.** Unmatched for pure scene and place generation without a person in frame. |
 | Seedream 4.5 | Bytedance | **Complex scene edits with faces.** When the brief is a face-anchored photo edit into a complex new scene (more than an outfit change), without heavy filters. |
 | Seedream 5.0 Lite | Bytedance | Same Seedream lineage as 4.5 with faster turnaround for visual-reasoning and instruction-based edits. |
 | Z Image | Tongyi-MAI | **Fastest in the catalog.** Built for speed, drafts, and LoRA-driven stylization. The pick when the brief is "fast and cheap, let me iterate". |
@@ -31,12 +31,12 @@ Preferred defaults for examples and quick-start guidance in this repo:
 | Flux Kontext Max | Black Forest Labs | **Context-aware editing and style transfer.** Strong for anime, stylized looks, typography remix — when defaults feel too generic. |
 | Kling O1 Image | Kling | Versatile photorealistic image generation with broad aspect-ratio support. |
 | GPT Image 1.5 | OpenAI | Earlier-generation OpenAI image model with editing and text-rendering capabilities. |
-| GPT Image 2 | OpenAI | **Default high-fidelity image generation.** Graphic design, UI, banners, typography, and any brief with on-image text. Used by `higgsfield-product-photoshoot` under the hood. |
+| GPT Image 2 | OpenAI | **Default high-fidelity image generation.** Graphic design, UI, banners, typography, and any brief with on-image text. Used by `mediaio-product-photoshoot` under the hood. |
 | Grok Imagine | xAI | Expressive, high-contrast, bold creative outputs. Worth trying for anime and stylized looks. |
 | Recraft V4.1 | Recraft | **Clean graphic and vector-style design assets.** Logos, icons, flat illustrations, brand marks, and controlled-palette visuals. Use `model_type=vector` for vector-like output and `standard` for raster-style graphics. |
-| Cinema Studio Image 2.5 | Higgsfield | Cinematic still frames up to 4K, dramatic film look. |
-| Marketing Studio Image | Higgsfield | **Branded image ads.** Retrieval-augmented over the user's avatars and products — runs inside the Marketing Studio flow. |
-| Auto | Higgsfield | **Smart routing layer.** Picks the best image model from the prompt automatically. Use when the user's intent is open and you don't want to commit to a specific model. |
+| Cinema Studio Image 2.5 | Media.io | Cinematic still frames up to 4K, dramatic film look. |
+| Marketing Studio Image | Media.io | **Branded image ads.** Retrieval-augmented over the user's avatars and products — runs inside the Marketing Studio flow. |
+| Auto | Media.io | **Smart routing layer.** Picks the best image model from the prompt automatically. Use when the user's intent is open and you don't want to commit to a specific model. |
 
 ## Video models
 
@@ -47,8 +47,8 @@ Preferred defaults for examples and quick-start guidance in this repo:
 | Kling 3.0 | Kling | **Cheaper Seedance 2.0 substitute** for single-plane scenes that don't need heavy motion. Multi-shot, audio sync, motion transfer. |
 | Kling 3.0 Turbo | Kling | **Fast Kling option for simple motion.** Text-to-video and single start-frame animation when the user explicitly wants speed, lower cost, or a quick Kling 3.0 variant. |
 | Seedance 1.5 Pro | Bytedance | A budget-friendly Seedance for clean single-take shots. |
-| Marketing Studio | Higgsfield | **All advertising and commercial video** — UGC, unboxing, TV spot, product showcase. The default whenever the brief is "make an ad". See `marketing-modes.md`. |
-| Cinema Studio Video 3.0 | Higgsfield | **Top-tier cinema-grade execution.** The pick for film-look briefs at the highest fidelity. |
+| Marketing Studio | Media.io | **All advertising and commercial video** — UGC, unboxing, TV spot, product showcase. The default whenever the brief is "make an ad". See `marketing-modes.md`. |
+| Cinema Studio Video 3.0 | Media.io | **Top-tier cinema-grade execution.** The pick for film-look briefs at the highest fidelity. |
 | Veo 3.1 Lite | Google | **Fast and cost-effective Veo.** Built for batch and volume work. |
 | Google Veo 3.1 | Google | Ultra-realistic, top-tier cinematic quality. Quality tiers basic/high/ultra. Format set is constrained — verify accepted aspect ratio and duration before submitting. |
 | Google Veo 3 | Google | Reliable cinematic with broad creative range and audio support. |
@@ -58,8 +58,8 @@ Preferred defaults for examples and quick-start guidance in this repo:
 | Kling 2.6 | Kling | Cinematic motion with advanced physics — earlier Kling release alongside 3.0. |
 | Grok Video 1.5 | xAI | **Bold image-to-video from a required reference frame.** Use when the user wants stylized, anime-like, high-contrast, or experimental motion from one starting image. Requires one `--start-image` or `--image`; duration 2–15s; resolution `480p` or `720p`. |
 | Grok Imagine (video) | xAI | Text and image-to-video with audio support. Worth trying for stylized creative briefs. |
-| Cinema Studio Video | Higgsfield | Cinematic compositions with dramatic mood. Use Cinema Studio Video 3.0 as the modern default. |
-| Cinema Studio Video v2 | Higgsfield | Refined cinematic camera and color with genre control. Use Cinema Studio Video 3.0 as the modern default. |
+| Cinema Studio Video | Media.io | Cinematic compositions with dramatic mood. Use Cinema Studio Video 3.0 as the modern default. |
+| Cinema Studio Video v2 | Media.io | Refined cinematic camera and color with genre control. Use Cinema Studio Video 3.0 as the modern default. |
 
 ---
 
@@ -85,7 +85,7 @@ Preferred defaults for examples and quick-start guidance in this repo:
 
 | Model | Provider | What it's for |
 |---|---|---|
-| Virality Predictor (`brain_activity`) | Higgsfield | **Objective attention proxy for video creative testing.** Scores how effectively a clip captures and sustains attention, useful for hook validation, virality potential, ad review, and product/content focus. Takes a video input and returns a text report with overall score, peak second, sustain, and an Open report link. Raw `.glb` / `.bin` render artifacts stay in JSON/debug output. |
+| Virality Predictor (`brain_activity`) | Media.io | **Objective attention proxy for video creative testing.** Scores how effectively a clip captures and sustains attention, useful for hook validation, virality potential, ad review, and product/content focus. Takes a video input and returns a text report with overall score, peak second, sustain, and an Open report link. Raw `.glb` / `.bin` render artifacts stay in JSON/debug output. |
 
 ---
 
@@ -99,7 +99,7 @@ Marketing Studio for ads and brand/product content. Use Seed Audio 1.0 for audio
 
 ### Image — pick this default
 
-1. **Brand product visual (Pinterest pin, lifestyle, hero banner, ad pack, virtual try-on, restyle)** → use `higgsfield-product-photoshoot` instead. NOT this skill.
+1. **Brand product visual (Pinterest pin, lifestyle, hero banner, ad pack, virtual try-on, restyle)** → use `mediaio-product-photoshoot` instead. NOT this skill.
 2. **Generated product concept / packaging / can / bottle with brand name or label text** → GPT Image 2.
 3. **Branded ad image with presenter avatar + product (Marketing Studio shape with RAG over user assets)** → Marketing Studio Image.
 4. **Aesthetic UGC / fashion editorial / lifestyle character** → Soul 2.0.
@@ -108,7 +108,7 @@ Marketing Studio for ads and brand/product content. Use Seed Audio 1.0 for audio
 7. **Locations / environments / no-people scenes** → Soul Location. Best in class — nothing else matches.
 8. **Logo, icon, vector-like illustration, brand mark, controlled-palette graphic** → Recraft V4.1. Use `--model_type vector` for vector-style output.
 9. **Face edit + complex scene swap (more than outfit change, no heavy filters)** → Seedream 4.5. Seedream 5.0 Lite for the same niche but faster.
-10. **Soul Character (reference id from `higgsfield-soul-id`)** → Soul 2.0 for stills; Soul Cinema for cinematic vibe.
+10. **Soul Character (reference id from `mediaio-soul-id`)** → Soul 2.0 for stills; Soul Cinema for cinematic vibe.
 11. **Anime / stylized / non-default look where defaults feel flat** → Flux Kontext Max or Grok Imagine. Worth trying.
 12. **Character or cartoon-style work** → Nano Banana 2; step up to Nano Banana Pro on hard cases.
 13. **Fast Nano Banana reference edit where speed/cost matters** → Nano Banana 2 Lite (`nano_banana_2_lite`).
@@ -151,14 +151,14 @@ Marketing Studio for ads and brand/product content. Use Seed Audio 1.0 for audio
 
 ### Things to keep in mind
 
-- **Don't invent model names.** Run `higgsfield model list` if you're unsure — submitting an unknown model returns `unknown model "..."`.
+- **Don't invent model names.** Run `mediaio model list` if you're unsure — submitting an unknown model returns `unknown model "..."`.
 - **Don't downgrade for schema convenience.** If Seedance 2.0 fits the intent, validate or submit it first; do not choose Seedance 1.5 only because it lists a requested duration more explicitly.
 - **Do not misroute video analysis because the output is text.** A request like "analyze this video" or "score this ad" maps to Virality Predictor (`brain_activity`) when the user provides or references a finished video.
 - **Do not misroute 3D style into 3D asset generation.** `multi_image_to_3d` is for actual mesh/GLB-style assets from reference images. A prompt like "make a 3D render" is usually image generation.
 - **Do not treat audio generation as an audio media input.** `seed_audio`, `mirelo_text_to_audio`, and `sonilo_music` create audio from text. `--audio` is for reference audio on video models like Seedance 2.0 or an alias for `audio_references` on Seed Audio.
 - **Audio reference for Seedance 2.0** comes through the media inputs with role `audio`, not via a separate `generate_audio` flag.
 - **Prompt-only models reject reference media.** Z Image, Recraft V4.1, Soul Cast, Soul Location, and some Wan configs are prompt-only; pass no media flags to them. Virality Predictor is different: it returns text but requires a video input.
-- **Route branded product visuals through `higgsfield-product-photoshoot`** — its prompt enhancer adds 10 mode-specific templates on top of GPT Image 2. Direct GPT Image 2 generation here is the right call for everything that isn't a product photoshoot.
+- **Route branded product visuals through `mediaio-product-photoshoot`** — its prompt enhancer adds 10 mode-specific templates on top of GPT Image 2. Direct GPT Image 2 generation here is the right call for everything that isn't a product photoshoot.
 - **For cinema video, prefer Cinema Studio Video 3.0** as the modern default; reach for the earlier Cinema Studio Video variants only when the user names them.
 - **When the user names a specific model, use it.** The defaults above cover the common intents — the rest of the catalog exists for users who know what they want.
 
@@ -166,7 +166,7 @@ Marketing Studio for ads and brand/product content. Use Seed Audio 1.0 for audio
 
 ## Media role conventions
 
-Each model accepts a fixed set of media roles or `*_references` params. When unsure, run `higgsfield model get <model>` and inspect the schema.
+Each model accepts a fixed set of media roles or `*_references` params. When unsure, run `mediaio model get <model>` and inspect the schema.
 
 | Model | Accepted media roles |
 |---|---|
@@ -195,7 +195,7 @@ For simple image-to-video, the `start_image` role is what you want. For pure vid
 These are model-specific. The CLI clamps unsupported values to the nearest allowed one (with a `Note: adjustments applied` warning) when the model declares a closed set. When in doubt:
 
 ```bash
-higgsfield model get <model>
+mediaio model get <model>
 ```
 
 Common patterns:

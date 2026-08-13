@@ -7,9 +7,9 @@ A kit is created by handing in a website URL — it is being fetched and fields 
 ## Discover
 
 ```bash
-higgsfield marketing-studio brand-kits list
-higgsfield marketing-studio brand-kits list --json
-higgsfield marketing-studio brand-kits list --size 50 --cursor <cursor>
+mediaio marketing-studio brand-kits list
+mediaio marketing-studio brand-kits list --json
+mediaio marketing-studio brand-kits list --size 50 --cursor <cursor>
 ```
 
 Aliases: `brand-kit`, `bk`.
@@ -24,11 +24,11 @@ A brand kit is created by handing in a website URL.
 
 ```bash
 # Fire and forget — returns the id, fetch runs in the background
-KIT_ID=$(higgsfield marketing-studio brand-kits fetch --url https://drinkolipop.com --json | jq -r .id)
+KIT_ID=$(mediaio marketing-studio brand-kits fetch --url https://drinkolipop.com --json | jq -r .id)
 
 # Block until the kit is completed or failed (typical 30–90s)
-higgsfield marketing-studio brand-kits fetch --url https://drinkolipop.com --wait
-higgsfield marketing-studio brand-kits fetch --url https://drinkolipop.com --wait --timeout 180s
+mediaio marketing-studio brand-kits fetch --url https://drinkolipop.com --wait
+mediaio marketing-studio brand-kits fetch --url https://drinkolipop.com --wait --timeout 180s
 ```
 
 `--wait` polls and renders the latest step on stderr until terminal status. On failure, the command exits non-zero and surfaces the kit's `error` field.
@@ -42,12 +42,12 @@ A kit that ends in `status: "failed"` is terminal. Ask the user for a different 
 ## Inspect
 
 ```bash
-higgsfield marketing-studio brand-kits get <id>
-higgsfield marketing-studio brand-kits get <id> --json
+mediaio marketing-studio brand-kits get <id>
+mediaio marketing-studio brand-kits get <id> --json
 ```
 
 The server checks completion **on its side** before applying a kit to a generation. So if `dtc-ads generate` returns an error mentioning the kit isn't ready, just wait and retry — don't try to bypass.
 
 ## Use in generation
 
-Pass `--brand-kit-id <id>` to `higgsfield marketing-studio dtc-ads generate`. See `marketing-dtc-ads.md` for the full flow.
+Pass `--brand-kit-id <id>` to `mediaio marketing-studio dtc-ads generate`. See `marketing-dtc-ads.md` for the full flow.

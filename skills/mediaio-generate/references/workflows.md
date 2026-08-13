@@ -1,16 +1,16 @@
 # Workflow Generation
 
-Workflows are higher-level generation flows exposed separately from the model catalog. They still create normal generation jobs, so results are fetched with `higgsfield generate get` / `higgsfield generate wait`.
+Workflows are higher-level generation flows exposed separately from the model catalog. They still create normal generation jobs, so results are fetched with `mediaio generate get` / `mediaio generate wait`.
 
 ## Discover workflows
 
 ```bash
-higgsfield workflow list
-higgsfield workflow get draw_to_video
-higgsfield workflow get reframe --json
+mediaio workflow list
+mediaio workflow get draw_to_video
+mediaio workflow get reframe --json
 ```
 
-Use `workflow get` before creating a job when unsure about params. Do not expect workflows to appear in `higgsfield model list`.
+Use `workflow get` before creating a job when unsure about params. Do not expect workflows to appear in `mediaio model list`.
 
 Current public workflows:
 
@@ -32,7 +32,7 @@ Use when the user has:
 - an edit instruction
 
 ```bash
-higgsfield generate workflow draw_to_video \
+mediaio generate workflow draw_to_video \
   --video ./source.mp4 \
   --sketch ./frame.png \
   --timestamp 3.2 \
@@ -47,7 +47,7 @@ higgsfield generate workflow draw_to_video \
 Use when the user wants a different video aspect ratio.
 
 ```bash
-higgsfield generate workflow reframe \
+mediaio generate workflow reframe \
   --video ./source.mp4 \
   --aspect-ratio 9:16 \
   --resolution 720p \
@@ -65,8 +65,8 @@ Optional:
 Workflow cost uses `generate cost workflow`, not `generate workflow cost`.
 
 ```bash
-higgsfield generate cost workflow draw_to_video --duration 8.2 --resolution 720p
-higgsfield generate cost workflow reframe --duration 7.1 --resolution 1080p
+mediaio generate cost workflow draw_to_video --duration 8.2 --resolution 720p
+mediaio generate cost workflow reframe --duration 7.1 --resolution 1080p
 ```
 
 If the user asks "how much will this workflow cost?", run cost first and report credits before creating.
@@ -76,8 +76,8 @@ If the user asks "how much will this workflow cost?", run cost first and report 
 With `--wait`, the CLI waits for the workflow job and prints the result. Without `--wait`, it prints the job id; use normal generation job commands:
 
 ```bash
-higgsfield generate get <job_id>
-higgsfield generate wait <job_id>
+mediaio generate get <job_id>
+mediaio generate wait <job_id>
 ```
 
 Do not tell the user to use `workflow get` for a job result. `workflow get` describes the workflow schema; `generate get` fetches the created job.
@@ -86,11 +86,11 @@ Do not tell the user to use `workflow get` for a job result. `workflow get` desc
 
 When FNF adds a public chain, document it here as a workflow:
 
-1. Verify it appears in `higgsfield workflow list`.
-2. Inspect params with `higgsfield workflow get <workflow_name> --json`.
+1. Verify it appears in `mediaio workflow list`.
+2. Inspect params with `mediaio workflow get <workflow_name> --json`.
 3. Add it to the Current public workflows table with a clear use case.
-4. Add a create example using `higgsfield generate workflow <workflow_name> ... --wait`.
+4. Add a create example using `mediaio generate workflow <workflow_name> ... --wait`.
 5. Add a cost example only when `workflow get` exposes `cost_params`.
-6. Keep result retrieval on `higgsfield generate get/wait <job_id>`.
+6. Keep result retrieval on `mediaio generate get/wait <job_id>`.
 
 Do not add workflow-only items to `model-catalog.md`. Public docs say "workflow"; FNF source may say "chain".
