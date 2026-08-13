@@ -4,21 +4,21 @@ How to pass reference images, videos, audio, and videos for analysis. Mirrored f
 
 ## Path or UUID — both work
 
-Each media flag accepts either a local file path or a UUID. The CLI auto-uploads paths before submission and auto-detects whether a UUID is an upload id (from `higgsfield upload create`) or a previous job id.
+Each media flag accepts either a local file path or a UUID. The CLI auto-uploads paths before submission and auto-detects whether a UUID is an upload id (from `mediaio upload create`) or a previous job id.
 
 ```bash
 # Local path — CLI uploads automatically
-higgsfield generate create nano_banana_2 --prompt "stylize in watercolor" --image ./photo.png --wait
+mediaio generate create nano_banana_2 --prompt "stylize in watercolor" --image ./photo.png --wait
 
-# Upload id (from higgsfield upload create)
-higgsfield generate create nano_banana_2 --prompt "..." --image <upload_id> --wait
+# Upload id (from mediaio upload create)
+mediaio generate create nano_banana_2 --prompt "..." --image <upload_id> --wait
 
 # Job id from a previous generation
-higgsfield generate create seedance_2_0 --prompt "anim" --start-image <previous_job_id> --wait
+mediaio generate create seedance_2_0 --prompt "anim" --start-image <previous_job_id> --wait
 
 # Video analysis — CLI uploads the file, Virality Predictor returns a text score/report plus an Open report link.
 # The output is text, but the task is still video analysis.
-higgsfield generate create brain_activity --video ./ad.mp4 --wait
+mediaio generate create brain_activity --video ./ad.mp4 --wait
 ```
 
 Type auto-detected from extension:
@@ -54,7 +54,7 @@ Each model declares a closed set of accepted roles or `*_references` params. Pas
 For simple image-to-video on a video model that only declares `image` (e.g. `veo3`), plain `--image` is auto-remapped to `start_image` by the CLI when unambiguous. When in doubt:
 
 ```bash
-higgsfield model get <model_id>   # shows the accepted media roles for this model
+mediaio model get <model_id>   # shows the accepted media roles for this model
 ```
 
 ## Multiple images
@@ -62,7 +62,7 @@ higgsfield model get <model_id>   # shows the accepted media roles for this mode
 Most image models accept multiple references — repeat the `--image` flag:
 
 ```bash
-higgsfield generate create nano_banana_2 --prompt "..." \
+mediaio generate create nano_banana_2 --prompt "..." \
   --image ./a.png --image ./b.png --image <upload_id> \
   --wait
 ```
@@ -72,7 +72,7 @@ Single-reference video models (`grok_video_v15`, `veo3`, `veo3_1`, `kling3_0_tur
 3D asset generation with `multi_image_to_3d` accepts 1–4 images. Repeat `--image` for front/side/back/detail views:
 
 ```bash
-higgsfield generate create multi_image_to_3d \
+mediaio generate create multi_image_to_3d \
   --image ./front.png --image ./side.png --image ./back.png \
   --should_texture true \
   --wait
@@ -83,7 +83,7 @@ higgsfield generate create multi_image_to_3d \
 `seedance_2_0` is the one model that takes an audio reference for lipsync / soundtrack matching. Pass via `medias` with role `audio`:
 
 ```bash
-higgsfield generate create seedance_2_0 \
+mediaio generate create seedance_2_0 \
   --prompt "person speaking" \
   --start-image ./headshot.png \
   --audio ./voice.mp3 \
@@ -96,11 +96,11 @@ higgsfield generate create seedance_2_0 \
 Seed Audio is the default text-to-audio model. It can run prompt-only, or use optional audio/image references:
 
 ```bash
-higgsfield generate create seed_audio \
+mediaio generate create seed_audio \
   --prompt "glass breaking in a large hall" \
   --wait
 
-higgsfield generate create seed_audio \
+mediaio generate create seed_audio \
   --prompt "same voice, calmer delivery" \
   --audio-references ./voice.wav \
   --wait
@@ -109,12 +109,12 @@ higgsfield generate create seed_audio \
 Sonilo and Mirelo are specialist/legacy alternatives. Use them only when the user names them or Seed Audio is not appropriate:
 
 ```bash
-higgsfield generate create sonilo_music \
+mediaio generate create sonilo_music \
   --prompt "cinematic synthwave track" \
   --duration 12 \
   --wait
 
-higgsfield generate create mirelo_text_to_audio \
+mediaio generate create mirelo_text_to_audio \
   --prompt "glass breaking in a large hall" \
   --duration 4 \
   --wait
@@ -126,13 +126,13 @@ The CLI returns specific error messages for known shape mismatches:
 
 - `Model accepts only --image (no roles)` — the model uses the legacy `input_images` shape, not `medias` with roles. Drop role-prefixed flags and use plain `--image`.
 - `Model does not accept media inputs` — the model is prompt-only or non-media (`z_image`, `recraft_v4_1`, `mirelo_text_to_audio`, `sonilo_music`, `soul_location`, `soul_cast`, `wan2_6` for some configs). Drop all media flags.
-- `Unknown media role "<role>"` — the role isn't in this model's media schema. Run `higgsfield model get <model>` and check accepted media roles or `*_references` params.
+- `Unknown media role "<role>"` — the role isn't in this model's media schema. Run `mediaio model get <model>` and check accepted media roles or `*_references` params.
 - `Missing required params: medias` for `brain_activity` — pass exactly one clip with `--video <path-or-id>`.
 
 ## Seeing what a model accepts
 
 ```bash
-higgsfield model get <model_id> --json | jq '{aspect_ratios, durations, parameters, medias}'
+mediaio model get <model_id> --json | jq '{aspect_ratios, durations, parameters, medias}'
 ```
 
 Returns the full schema: aspect ratios (closed enum or open), durations (closed list or `min/max` range), parameters (with descriptions and defaults), and media roles per slot.

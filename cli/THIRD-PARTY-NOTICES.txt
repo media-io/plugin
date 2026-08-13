@@ -1,7 +1,7 @@
 THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
 Do Not Translate or Localize
 
-cli-src incorporates the third-party open-source components listed below. Each component's own copyright notice and license terms — as distributed with the component — are reproduced for informational purposes. Mediaio reserves all rights not expressly granted herein.
+cli-src incorporates the third-party open-source components listed below. Each component's own copyright notice and license terms — as distributed with the component — are reproduced for informational purposes. Media.io reserves all rights not expressly granted herein.
 
 This notice covers 16 third-party components (16 include their full license text).
 
@@ -803,4 +803,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-

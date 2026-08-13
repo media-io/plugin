@@ -1,22 +1,23 @@
 #!/bin/sh
-# Mediaio CLI installer.
+# Media.io CLI installer.
 #
-# Installs `mediaio` (primary) + `higgs` symlink (always).
-# Tries to install `hf` shortcut unless taken (e.g. by huggingface CLI).
+# Installs `mediaio` (primary) + `media-io` symlink (always).
+# Tries to install the `mi` shortcut unless that command already belongs to
+# another product.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/media-io/cli/main/install.sh | sh
 #   curl -fsSL ... | sh -s -- --prefix=$HOME/.local
 #   curl -fsSL ... | sh -s -- --tag v0.1.1
-#   curl -fsSL ... | sh -s -- --no-hf            # skip hf shortcut
-#   curl -fsSL ... | sh -s -- --hf               # force hf shortcut
+#   curl -fsSL ... | sh -s -- --no-mi            # skip mi shortcut
+#   curl -fsSL ... | sh -s -- --mi               # force mi shortcut
 
 set -e
 
 REPO="media-io/cli"
 PREFIX="/usr/local"
 TAG=""
-INSTALL_HF=auto
+INSTALL_MI=auto
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -24,8 +25,8 @@ while [ "$#" -gt 0 ]; do
     --prefix)   PREFIX="$2"; shift 2 ;;
     --tag=*)    TAG="${1#*=}"; shift ;;
     --tag)      TAG="$2"; shift 2 ;;
-    --no-hf)    INSTALL_HF=no; shift ;;
-    --hf)       INSTALL_HF=yes; shift ;;
+    --no-mi)    INSTALL_MI=no; shift ;;
+    --mi)       INSTALL_MI=yes; shift ;;
     *) echo "Unknown arg: $1" >&2; exit 1 ;;
   esac
 done
@@ -53,12 +54,12 @@ if [ -z "$TAG" ]; then
   fi
 fi
 VER_NO_V="${TAG#v}"
-TARBALL="hf_${VER_NO_V}_${OS}_${ARCH}.tar.gz"
+TARBALL="mediaio_${VER_NO_V}_${OS}_${ARCH}.tar.gz"
 URL="https://github.com/$REPO/releases/download/$TAG/$TARBALL"
 echo "Downloading $URL"
 curl -fsSL -o "$TMPDIR/$TARBALL" "$URL"
 
-ARCHIVE="$(ls "$TMPDIR"/hf_*.tar.gz 2>/dev/null | head -n 1)"
+ARCHIVE="$(ls "$TMPDIR"/mediaio_*.tar.gz 2>/dev/null | head -n 1)"
 if [ -z "$ARCHIVE" ]; then
   echo "No archive found." >&2
   exit 1
@@ -75,7 +76,7 @@ run() {
 }
 
 # Primary binary: mediaio
-run install -m 0755 "$TMPDIR/hf" "$BIN_DIR/mediaio"
+run install -m 0755 "$TMPDIR/mediaio" "$BIN_DIR/mediaio"
 [ "$OS" = "darwin" ] && run xattr -d com.apple.quarantine "$BIN_DIR/mediaio" 2>/dev/null || true
 cat > "$TMPDIR/mediaio.install.json" <<EOF
 {
@@ -87,35 +88,35 @@ cat > "$TMPDIR/mediaio.install.json" <<EOF
 EOF
 run install -m 0644 "$TMPDIR/mediaio.install.json" "$BIN_DIR/mediaio.install.json"
 
-# higgs symlink (always)
-run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/higgs"
+# Branded long-form alias (always)
+run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/media-io"
 
-# hf shortcut (optional)
-HF_INSTALLED=no
-if [ "$INSTALL_HF" = "no" ]; then
-  echo "Skipping 'hf' shortcut (--no-hf)."
-elif [ "$INSTALL_HF" = "yes" ]; then
-  run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/hf"
-  HF_INSTALLED=yes
+# Short alias (optional and conflict-aware)
+MI_INSTALLED=no
+if [ "$INSTALL_MI" = "no" ]; then
+  echo "Skipping 'mi' shortcut (--no-mi)."
+elif [ "$INSTALL_MI" = "yes" ]; then
+  run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/mi"
+  MI_INSTALLED=yes
 else
-  if command -v hf >/dev/null 2>&1; then
-    EXISTING="$(command -v hf)"
-    if [ "$EXISTING" = "$BIN_DIR/hf" ]; then
-      run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/hf"
-      HF_INSTALLED=yes
+  if command -v mi >/dev/null 2>&1; then
+    EXISTING="$(command -v mi)"
+    if [ "$EXISTING" = "$BIN_DIR/mi" ]; then
+      run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/mi"
+      MI_INSTALLED=yes
     else
-      echo "Skipping 'hf' shortcut: $EXISTING already in PATH (huggingface or other tool)."
-      echo "Force with --hf if you want to override."
+      echo "Skipping 'mi' shortcut: $EXISTING already in PATH."
+      echo "Force with --mi if you want to override it."
     fi
   else
-    run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/hf"
-    HF_INSTALLED=yes
+    run ln -sf "$BIN_DIR/mediaio" "$BIN_DIR/mi"
+    MI_INSTALLED=yes
   fi
 fi
 
 echo "Installed: $($BIN_DIR/mediaio version)"
-if [ "$HF_INSTALLED" = "yes" ]; then
-  echo "Bins: mediaio, higgs, hf"
+if [ "$MI_INSTALLED" = "yes" ]; then
+  echo "Bins: mediaio, media-io, mi"
 else
-  echo "Bins: mediaio, higgs"
+  echo "Bins: mediaio, media-io"
 fi

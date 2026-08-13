@@ -4,7 +4,7 @@
 
 | | Preset | Custom |
 |---|---|---|
-| Source | Curated by Higgsfield | User-uploaded |
+| Source | Curated by Media.io | User-uploaded |
 | Cost | None for selection | Cost of upload |
 | Diversity | Limited but professional | Unlimited |
 | Use when | Generic ad, fast turnaround | Brand-specific face, founder, employee |
@@ -12,8 +12,8 @@
 ## Listing presets
 
 ```bash
-higgsfield marketing-studio avatars list
-higgsfield marketing-studio avatars list --json | jq '.[] | select(.gender=="female")'
+mediaio marketing-studio avatars list
+mediaio marketing-studio avatars list --json | jq '.[] | select(.gender=="female")'
 ```
 
 Filter by `name`, `gender`, etc. on the JSON output.
@@ -21,9 +21,9 @@ Filter by `name`, `gender`, etc. on the JSON output.
 ## Creating a custom avatar
 
 ```bash
-ID=$(higgsfield upload create founder.png)
-URL=$(higgsfield upload create founder.png --json | jq -r .url)   # if you need cloudfront URL
-higgsfield marketing-studio avatars create --name "Founder" --image $ID --image-url $URL
+ID=$(mediaio upload create founder.png)
+URL=$(mediaio upload create founder.png --json | jq -r .url)   # if you need cloudfront URL
+mediaio marketing-studio avatars create --name "Founder" --image $ID --image-url $URL
 ```
 
 `--image-url` is the cloudfront URL from the upload. Required by the API.
@@ -34,7 +34,7 @@ higgsfield marketing-studio avatars create --name "Founder" --image $ID --image-
 AVATARS_JSON=$(mktemp)
 printf '[{"id":"<avatar_id>","type":"preset"}]' > "$AVATARS_JSON"
 
-higgsfield generate create marketing_studio_video \
+mediaio generate create marketing_studio_video \
   --avatars @"$AVATARS_JSON" \
   ... \
   --wait

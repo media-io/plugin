@@ -1,4 +1,4 @@
-# Mediaio CLI Models
+# Media.io CLI Models
 
 Generated from `mediaio model list` and `mediaio model get <job_set_type>`. Run those commands for the live schema.
 
@@ -286,7 +286,7 @@ Constraints:
 | `--aspect_ratio` | false | `1:1` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `21:9`, `9:21` |
 | `--prompt` | true | — | string |
 
-### text2image_soul_v2 — Mediaio Soul V2
+### text2image_soul_v2 — Media.io Soul V2
 
 | flag | required | default | values |
 |---|---|---|---|
@@ -979,7 +979,7 @@ Constraints:
 Example:
 
 ```bash
-mediaio generate create text2speech_v2 --prompt "Hello from Mediaio" --variant elevenlabs --voice_type preset --voice_id <voice_id> --wait
+mediaio generate create text2speech_v2 --prompt "Hello from Media.io" --variant elevenlabs --voice_type preset --voice_id <voice_id> --wait
 ```
 
 Additional utility job types (upscale, background removal, transcription, etc.) are available; run `mediaio model get <job_type>` for their schemas: `autosprite`, `bytedance_image_upscale`, `bytedance_video_upscale`, `clipify`, `color_grading_lut`, `llm_text`, `sam_3_video`, `speech2text`, `topaz_image`, `topaz_video`, `video_deflicker`, `video_upscale`.
