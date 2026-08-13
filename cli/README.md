@@ -1,12 +1,12 @@
-# Mediaio CLI
+# Media.io CLI
 
 [![release](https://img.shields.io/github/v/release/media-io/cli?style=flat-square)](https://github.com/media-io/cli/releases)
 [![npm](https://img.shields.io/npm/v/@mediaio/cli?style=flat-square)](https://www.npmjs.com/package/@mediaio/cli)
 [![license](https://img.shields.io/github/license/media-io/cli?style=flat-square)](./LICENSE)
 
-Generate images, videos, 3D assets, audio, and finished-video analysis from the terminal using 40+ [Mediaio AI](https://mediaio.ai) models — Nano Banana Pro, Nano Banana 2 Lite, Gemini Omni Flash, FLUX.2, Soul V2, Veo 3.1, Kling v3.0, Seedance 2.0, Marketing Studio, Virality Predictor, and more. Train face-faithful Soul characters and produce branded marketing assets without leaving your shell.
+Generate images, videos, 3D assets, audio, and finished-video analysis from the terminal using 40+ [Media.io AI](https://media.io) models — Nano Banana Pro, Nano Banana 2 Lite, Gemini Omni Flash, FLUX.2, Soul V2, Veo 3.1, Kling v3.0, Seedance 2.0, Marketing Studio, Virality Predictor, and more. Train face-faithful Soul characters and produce branded marketing assets without leaving your shell.
 
-![Mediaio CLI demo](./demo.png)
+![Media.io CLI demo](./demo.png)
 
 ## Contents
 
@@ -270,7 +270,7 @@ mediaio generate create text2image_soul_v2 \
 | `flux_2` | FLUX.2 |
 | `flux_kontext` | Flux Kontext |
 | `gpt_image_2` | GPT Image 2 |
-| `text2image_soul_v2` | Mediaio Soul V2 |
+| `text2image_soul_v2` | Media.io Soul V2 |
 | `seedream_v4_5` | Seedream 4.5 |
 | `seedream_v5_lite` | Seedream V5 Lite |
 | `grok_image` | Grok Image |
@@ -341,7 +341,7 @@ voice with `--voice_type` (`preset` or `element`) + `--voice_id`. Discover voice
 
 ```bash
 mediaio generate create text2speech_v2 \
-  --prompt "Hello from Mediaio" \
+  --prompt "Hello from Media.io" \
   --variant elevenlabs \
   --voice_type preset \
   --voice_id <voice_id> \
@@ -413,16 +413,16 @@ Build and deploy full-stack websites from the terminal. Each site is a React 19 
 TanStack Start app, server-rendered as a single Cloudflare Worker, with D1, R2, KV,
 Durable Objects, and Containers available. `mediaio website create` provisions the
 site and a git repo; you clone it, edit the code under `app/`, push, and deploy to
-its live URL. The build runs on the Mediaio platform from the pushed
+its live URL. The build runs on the Media.io platform from the pushed
 branch.
 
 `create` requires `--type` — what kind of product you're building:
 
-- **`website`** — a standalone site with no Mediaio integration (no
-  "Sign in with Mediaio", no requests to Mediaio). Landing pages,
+- **`website`** — a standalone site with no Media.io integration (no
+  "Sign in with Media.io", no requests to Media.io). Landing pages,
   portfolios, general tools.
-- **`app`** — a product tightly integrated with Mediaio: its users sign in
-  with Mediaio and generate images/videos through the Mediaio SDK.
+- **`app`** — a product tightly integrated with Media.io: its users sign in
+  with Media.io and generate images/videos through the Media.io SDK.
 
 `create` also requires `--category` — the content category the site is filed
 under on the marketplace. It's a slug from a curated taxonomy (e.g.
@@ -513,7 +513,7 @@ mediaio website repo-access <website_id>
 git -c http.extraHeader="Authorization: token <token>" clone <repo_url> <slug>
 cd <slug>
 # The scaffolded clone has no git identity — set one or the first commit fails:
-git config user.email "agent@mediaio.ai" && git config user.name "Mediaio Agent"
+git config user.email "agent@media.io" && git config user.name "Media.io Agent"
 # ...edit files under app/ (bun-only repo: bun install / bun add / bunx /
 #    bun run typecheck|build — never npm/npx/yarn; app/src/routeTree.gen.ts
 #    is generated, never hand-edit it) ...
@@ -523,13 +523,13 @@ git -c http.extraHeader="Authorization: token <token>" push origin <branch>
 # 4. Deploy — ships the live site (run it again after every change)
 mediaio website deploy <website_id>
 
-# Publish — list the site on the Mediaio community feed ("show in feed")
+# Publish — list the site on the Media.io community feed ("show in feed")
 # where others can discover and remix it. Publish does NOT deploy: it lists
 # whatever `deploy` last shipped, so deploy first (and again after any change).
 # Prints the community-feed listing URL.
 mediaio website publish <website_id>
 
-# Enter the $100k Mediaio app contest (type: app). The entry PUBLISHES the
+# Enter the $100k Media.io app contest (type: app). The entry PUBLISHES the
 # app for you — no separate `publish` needed; it just needs a live deploy and
 # filled page metadata. Pass one or more public social links (Instagram /
 # TikTok / YouTube / X) promoting it. Re-running overwrites the links.
