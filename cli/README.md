@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/@mediaio/cli?style=flat-square)](https://www.npmjs.com/package/@mediaio/cli)
 [![license](https://img.shields.io/github/license/media-io/cli?style=flat-square)](./LICENSE)
 
-Generate images, videos, 3D assets, audio, and finished-video analysis from the terminal using 40+ [Media.io AI](https://media.io) models — Nano Banana Pro, Nano Banana 2 Lite, Gemini Omni Flash, FLUX.2, Soul V2, Veo 3.1, Kling v3.0, Seedance 2.0, Marketing Studio, Virality Predictor, and more. Train face-faithful Soul characters and produce branded marketing assets without leaving your shell.
+Generate images, videos, 3D assets, audio, and finished-video analysis from the terminal using 40+ [Media.io AI](https://media.io) models — Nano Banana Pro, Nano Banana 2 Lite, Gemini Omni Flash, FLUX.2, Soul V2, Veo 3.1, Kling v3.0, Seedance 2.0, Virality Predictor, and more. Train face-faithful Soul characters and produce branded marketing assets without leaving your shell.
 
 ![Media.io CLI demo](./demo.png)
 
@@ -259,7 +259,7 @@ mediaio generate create text2image_soul_v2 \
 
 40+ image, video, 3D, and audio models. Per-model parameters, defaults, and enums: [MODELS.md](./MODELS.md). Live catalog: `mediaio model list`.
 
-### Image (23)
+### Image (22)
 
 | job_set_type | name |
 |---|---|
@@ -285,9 +285,8 @@ mediaio generate create text2image_soul_v2 \
 | `soul_cinematic` | Soul Cinematic |
 | `soul_location` | Soul Location |
 | `soul_cast` | Soul Cast |
-| `marketing_studio_image` | Marketing Studio Image |
 
-### Video (22)
+### Video (21)
 
 | job_set_type | name |
 |---|---|
@@ -311,7 +310,6 @@ mediaio generate create text2image_soul_v2 \
 | `cinematic_studio_video` | Cinematic Studio Video |
 | `cinematic_studio_video_3_5` | Cinematic Studio Video 3.5 |
 | `cinematic_studio_video_v2` | Cinematic Studio Video V2 |
-| `marketing_studio_video` | Marketing Studio Video |
 | `video_background_remover` | Video Background Remover |
 
 ### 3D (5)
@@ -590,7 +588,6 @@ Add `--json` to any command for machine-readable output.
 | `mediaio voices` | list voices / inspect a voice for text2speech & voice-change |
 | `mediaio upload` | upload an image / video / audio file |
 | `mediaio soul-id` | train and manage Soul characters |
-| `mediaio marketing-studio` | branded ads (avatars, products, ad references, brand kits, ad formats, DTC Ads Engine) |
 | `mediaio product-photoshoot` | brand image generation with mode-specific enhancement |
 | `mediaio website` | create (`--type website\|app`, `--category <slug>`; apps require `--template app-detail\|preset\|studio\|custom`, with `custom` only by explicit request) / list categories / edit (via git repo access) / deploy / rename the subdomain / publish to the community feed / enter the app contest (auto-publishes) / inspect DB / manage secrets for full-stack websites |
 | `mediaio version` | print build info |
