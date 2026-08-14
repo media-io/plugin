@@ -1,6 +1,6 @@
 {
   "name": "media-io",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Media.io plugin for agent-driven video editing and creation workflows from Claude Code.",
   "author": {
     "name": "Media.io",
