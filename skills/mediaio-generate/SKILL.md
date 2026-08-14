@@ -2,7 +2,7 @@
 version: 0.12.0
 name: mediaio-generate
 description: |
-  Generate images/videos/3D assets/audio via Mediaio AI. Defaults:
+  Generate images/videos/3D assets/audio via Media.io AI. Defaults:
   GPT Image 2 for image/design/text, Seedance 2.0 for
   video, Nano Banana 2/Lite/Pro for character/reference
   images, Marketing Studio for ads, Seed Audio 1.0 for audio.
@@ -25,9 +25,9 @@ argument-hint: "[prompt-or-analysis-request] [--model <name>] [--image|--video <
 allowed-tools: Bash
 ---
 
-# Mediaio Generate
+# Media.io Generate
 
-Submit jobs to any Mediaio model. Wraps the `mediaio` CLI. Covers generic image/video/3D/audio generation, Marketing Studio (branded ads, avatars, products, hooks, settings), and, secondarily, Virality Predictor video scoring.
+Submit jobs to any Media.io model. Wraps the `mediaio` CLI. Covers generic image/video/3D/audio generation, Marketing Studio (branded ads, avatars, products, hooks, settings), and, secondarily, Virality Predictor video scoring.
 
 ## Step 0 — Bootstrap
 
@@ -35,7 +35,7 @@ Before any other command:
 
 1. If `mediaio` is not on `$PATH`, install it:
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/mediaio-ai/cli/main/install.sh | sh
+   curl -fsSL https://raw.githubusercontent.com/media-io/cli/main/install.sh | sh
    ```
 2. If `mediaio account status` fails with `Session expired` / `Not authenticated`, run `mediaio auth login` and complete the sign-in in the browser it opens and wait for confirmation.
 
@@ -51,7 +51,7 @@ Before any other command:
 
 ## Discovery guardrail
 
-When looking for a Mediaio feature/model, do not rely only on semantic search or CLI `--help`. First run an unfiltered model list, then inspect likely `job_set_type` names. If the user says a model exists but search returns no results, trust that signal and verify with the full model list before answering.
+When looking for a Media.io feature/model, do not rely only on semantic search or CLI `--help`. First run an unfiltered model list, then inspect likely `job_set_type` names. If the user says a model exists but search returns no results, trust that signal and verify with the full model list before answering.
 
 Workflows are separate from models. Discover them with `mediaio workflow list` and inspect params with `mediaio workflow get <workflow_name>`.
 

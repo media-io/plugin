@@ -1,6 +1,6 @@
 # Marketing Studio Modes
 
-Current mode values for `marketing_studio_video` `--mode`. The live schema is the source of truth, so run `higgsfield model get marketing_studio_video` if validation fails.
+Current mode values for `marketing_studio_video` `--mode`. The live schema is the source of truth, so run `mediaio model get marketing_studio_video` if validation fails.
 
 | `--mode` slug | Human-readable label | Hook/setting | Best for |
 |---|---|---|---|
@@ -32,11 +32,11 @@ The "Hook/setting" column shows whether `--hook_id` and `--setting_id` are valid
 For `marketing_studio_video`, the API accepts:
 
 - `aspect_ratio`: `auto`, `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` (default `16:9`).
-- `duration`: integer ≥ 4 seconds. No fixed cap; check `higgsfield model get marketing_studio_video` for the current upper bound.
+- `duration`: integer ≥ 4 seconds. No fixed cap; check `mediaio model get marketing_studio_video` for the current upper bound.
 - `resolution`: `480p` or `720p` (default `720p`).
 - `generate_audio`: boolean (default `false`). Generates audio for the video.
 - `avatars`: array of `{id, type}` where `type` is `preset` or `custom`. See `marketing-avatars.md`.
-- `product_ids`: array of product UUIDs (from `higgsfield marketing-studio products fetch` or `create`). See `marketing-products.md`.
+- `product_ids`: array of product UUIDs (from `mediaio marketing-studio products fetch` or `create`). See `marketing-products.md`.
 - `hook_id`: optional Marketing Studio setup hook UUID. See `marketing-setup-items.md`.
 - `setting_id`: optional Marketing Studio setup setting UUID. See `marketing-setup-items.md`.
 - `medias`: optional reference images with role `image`, `start_image`, or `end_image`.
@@ -47,7 +47,7 @@ For `marketing_studio_video`, the API accepts:
 
 For `marketing_studio_video` driven by a product URL (no manual product create / fetch), the MCP-side flow is:
 
-1. Call `higgsfield marketing-studio products fetch --url <url> --wait` (or use `show_marketing_studio` widget action `fetch`).
-2. Call `higgsfield generate create marketing_studio_video --url <same url>` — the backend looks up / reuses the entity and submits.
+1. Call `mediaio marketing-studio products fetch --url <url> --wait` (or use `show_marketing_studio` widget action `fetch`).
+2. Call `mediaio generate create marketing_studio_video --url <same url>` — the backend looks up / reuses the entity and submits.
 
 Repeated fetches for the same URL dedupe — the backend reuses any existing non-failed entity.

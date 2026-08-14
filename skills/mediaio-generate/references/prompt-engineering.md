@@ -2,7 +2,7 @@
 
 ## Basics
 
-Higgsfield models reward concrete, sensory prompts.
+Media.io models reward concrete, sensory prompts.
 
 - **Subject + setting + style**: "a red fox curled in a snowy pine forest, golden hour, cinematic"
 - **Camera**: lens (35mm, 85mm), angle (low, overhead), motion (dolly in, tracking shot)
@@ -37,7 +37,7 @@ Most models don't expose a `negative_prompt`. Phrase positively:
 - `16:9` — landscape, cinematic
 - `9:16` — vertical, social
 - `1:1` — square, profile / icon
-- `4:3`, `3:4`, `21:9` — model-dependent, check `higgsfield model get <jst>`
+- `4:3`, `3:4`, `21:9` — model-dependent, check `mediaio model get <jst>`
 
 ## Safety
 

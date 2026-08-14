@@ -11,22 +11,22 @@ Marketing Studio setup items are optional reusable context for `marketing_studio
 ## Discover Items
 
 ```bash
-higgsfield marketing-studio hooks list
-higgsfield marketing-studio settings list
+mediaio marketing-studio hooks list
+mediaio marketing-studio settings list
 ```
 
 Use `--json` when the agent needs IDs:
 
 ```bash
-higgsfield marketing-studio hooks list --json
-higgsfield marketing-studio settings list --json
+mediaio marketing-studio hooks list --json
+mediaio marketing-studio settings list --json
 ```
 
 Filter large lists with search:
 
 ```bash
-higgsfield marketing-studio hooks list --search sale --json
-higgsfield marketing-studio settings list --search office --json
+mediaio marketing-studio hooks list --search sale --json
+mediaio marketing-studio settings list --search office --json
 ```
 
 The response shape is:
@@ -43,7 +43,7 @@ Pass one or both IDs:
 PRODUCT_IDS_JSON=$(mktemp)
 printf '["<product_id>"]' > "$PRODUCT_IDS_JSON"
 
-higgsfield generate create marketing_studio_video \
+mediaio generate create marketing_studio_video \
   --prompt "..." \
   --mode ugc \
   --product_ids @"$PRODUCT_IDS_JSON" \

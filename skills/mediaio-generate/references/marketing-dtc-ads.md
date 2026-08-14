@@ -2,13 +2,13 @@
 
 DTC Ads Engine is a flexible ad-image generation surface for DTC brands. It composes a prompt with a brand kit and a picked ad format, optionally folds in reference media, an avatar, and a product, and produces a branded image.
 
-CLI command: `higgsfield marketing-studio dtc-ads generate` (aliases: `dtc`, `ads`).
+CLI command: `mediaio marketing-studio dtc-ads generate` (aliases: `dtc`, `ads`).
 
 ## End-to-end flow
 
 There is no fixed order, but **picking an ad format is mandatory** — both the CLI and the server reject calls without `format_id`. There is no auto-default. Everything else (brand kit, avatar, product, media) is optional and only applied when the user explicitly provides them.
 
-1. **Ask the user for an ad format.** Run `higgsfield marketing-studio ad-formats list --json` and let them pick by `name`. Do not auto-pick from the user's phrasing — the catalogue is small and the choice is creative, not technical.
+1. **Ask the user for an ad format.** Run `mediaio marketing-studio ad-formats list --json` and let them pick by `name`. Do not auto-pick from the user's phrasing — the catalogue is small and the choice is creative, not technical.
 2. **Pick or create a brand kit (optional).** See `marketing-brand-kits.md`.
 3. **Offer optional inputs.** Suggest the user can attach an avatar (`--avatar`), a product (`--product`), or reference media (`--media`) if it would suit the brief.
 4. **Generate.** With `--wait`, the command polls until the job completes and prints the result URL.
@@ -16,9 +16,9 @@ There is no fixed order, but **picking an ad format is mandatory** — both the 
 ## Discover ad formats
 
 ```bash
-higgsfield marketing-studio ad-formats list
-higgsfield marketing-studio ad-formats list --type headline
-higgsfield marketing-studio ad-formats list --json
+mediaio marketing-studio ad-formats list
+mediaio marketing-studio ad-formats list --type headline
+mediaio marketing-studio ad-formats list --json
 ```
 
 Each item exposes `id`, `name`, `type`, `priority`, and an optional `media.thumbnail_url`. Filter by `--type` (client-side) when the user mentions a specific category — `headline`, `bullet-points`, `us-vs-them`, etc.
@@ -27,20 +27,20 @@ Each item exposes `id`, `name`, `type`, `priority`, and an optional `media.thumb
 
 ```bash
 # Bare minimum (format id is required)
-higgsfield marketing-studio dtc-ads generate \
+mediaio marketing-studio dtc-ads generate \
   --prompt "Bold hero shot on marble" \
   --format-id <format_uuid> \
   --wait
 
 # With a brand kit
-higgsfield marketing-studio dtc-ads generate \
+mediaio marketing-studio dtc-ads generate \
   --prompt "Bold hero shot on marble" \
   --format-id <format_uuid> \
   --brand-kit-id <kit_uuid> \
   --wait
 
 # With reference media + avatar + product
-higgsfield marketing-studio dtc-ads generate \
+mediaio marketing-studio dtc-ads generate \
   --prompt "Founder unboxing the product" \
   --format-id <format_uuid> \
   --brand-kit-id <kit_uuid> \
