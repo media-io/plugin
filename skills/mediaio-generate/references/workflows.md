@@ -1,96 +1,64 @@
 # Workflow Generation
 
-Workflows are higher-level generation flows exposed separately from the model catalog. They still create normal generation jobs, so results are fetched with `mediaio generate get` / `mediaio generate wait`.
+Use only workflows exposed by the currently installed BIN. Workflow identifiers and schemas are dynamic; historical names in planning documents are not executable unless they appear in live discovery.
 
-## Discover workflows
+## Discover
 
 ```bash
 mediaio workflow list
-mediaio workflow get draw_to_video
-mediaio workflow get reframe --json
+mediaio workflow get <workflow_name>
 ```
 
-Use `workflow get` before creating a job when unsure about params. Do not expect workflows to appear in `mediaio model list`.
+Take the exact identifier from the first column of `workflow list`. `workflow get` prints the accepted parameters, defaults, allowed values, media fields, and raw credit configuration. These commands produce their documented human-readable output and have no optional JSON mode.
 
-Current public workflows:
+## Prepare media
 
-| Workflow | Use when |
-|---|---|
-| `draw_to_video` | Edit a source video using an edited sketch/image frame at a timestamp. Business name may be "Draw To Edit"; CLI name is `draw_to_video`. |
-| `reframe` | Reframe a source video to another aspect ratio and optional resolution. |
-
-Do not use or mention `game_character_creator` unless the current CLI exposes it publicly and the user explicitly asks for it.
-
-## Create jobs
-
-### Draw To Video
-
-Use when the user has:
-- a source video
-- an edited/sketched frame image
-- the timestamp for that frame
-- an edit instruction
+Generation parameters accept uploaded file IDs, not local paths. Upload every local input first:
 
 ```bash
-mediaio generate workflow draw_to_video \
-  --video ./source.mp4 \
-  --sketch ./frame.png \
-  --timestamp 3.2 \
-  --prompt "make the jacket red" \
-  --wait
+mediaio upload create ./source.mp4
+mediaio upload create ./reference.png
 ```
 
-`--image` is an alias for `--sketch`.
+Save each returned `file_id`, then map it to the exact parameter name shown by `workflow get`.
 
-### Reframe
+## Submit
 
-Use when the user wants a different video aspect ratio.
+Workflows use the same create command as models:
 
 ```bash
-mediaio generate workflow reframe \
-  --video ./source.mp4 \
-  --aspect-ratio 9:16 \
-  --resolution 720p \
-  --wait
+mediaio generate create <workflow_name> [--param value]...
 ```
 
-Optional:
-- `--mode std|pro`; default `std`
-- `--start-image <path-or-id>`
-- `--image <path-or-id>` references for `--mode pro`; use 1-2 images
-- `--folder-id <folder_id>`
-
-## Cost
-
-Workflow cost uses `generate cost workflow`, not `generate workflow cost`.
+The create response contains a `task_id`. Wait separately:
 
 ```bash
-mediaio generate cost workflow draw_to_video --duration 8.2 --resolution 720p
-mediaio generate cost workflow reframe --duration 7.1 --resolution 1080p
+mediaio generate wait <task_id> --timeout 20m --interval 3s
 ```
 
-If the user asks "how much will this workflow cost?", run cost first and report credits before creating.
-
-## Results
-
-With `--wait`, the CLI waits for the workflow job and prints the result. Without `--wait`, it prints the job id; use normal generation job commands:
+To query a known task directly when both values are available:
 
 ```bash
-mediaio generate get <job_id>
-mediaio generate wait <job_id>
+mediaio generate query <workflow_name> <task_id>
 ```
 
-Do not tell the user to use `workflow get` for a job result. `workflow get` describes the workflow schema; `generate get` fetches the created job.
+## Cost information
 
-## Maintainer note
+The current BIN has no standalone pre-submit cost command. Inspect the raw credit configuration printed by `mediaio workflow get <workflow_name>`. If that data is insufficient for an exact estimate, tell the user that the exact cost is currently unavailable instead of inventing it.
 
-When FNF adds a public chain, document it here as a workflow:
+## Historical inventory
 
-1. Verify it appears in `mediaio workflow list`.
-2. Inspect params with `mediaio workflow get <workflow_name> --json`.
-3. Add it to the Current public workflows table with a clear use case.
-4. Add a create example using `mediaio generate workflow <workflow_name> ... --wait`.
-5. Add a cost example only when `workflow get` exposes `cost_params`.
-6. Keep result retrieval on `mediaio generate get/wait <job_id>`.
+`draw_to_video` and `reframe` were documented by the migrated reference set, but they are not current commands unless live `workflow list` returns those exact identifiers. Preserve their product requirements as planning input only:
 
-Do not add workflow-only items to `model-catalog.md`. Public docs say "workflow"; FNF source may say "chain".
+- Draw-to-video: source video, edited frame, timestamp, and edit instruction.
+- Reframe: source video, target aspect ratio, optional resolution, and optional reference media.
+
+## Maintainer rule
+
+For every documented workflow:
+
+1. Confirm its exact identifier in live `mediaio workflow list`.
+2. Confirm its complete schema with `mediaio workflow get <workflow_name>`.
+3. Build examples only with `mediaio generate create` followed by `mediaio generate wait`.
+4. Keep result lookup on `mediaio generate query <workflow_name> <task_id>`.
+5. Document cost only from the credit configuration returned by the live BIN.

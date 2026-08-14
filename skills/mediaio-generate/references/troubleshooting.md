@@ -29,6 +29,4 @@ If `Failed to decode response. Body: <html>...captcha-delivery...` appears, the 
 
 ## Cost
 
-`mediaio generate cost <jst> ...` returns credit estimate without submitting. Useful when the user asks "how much will this cost?".
-
-For workflows, use `mediaio generate cost workflow <workflow_name> ...`, for example `mediaio generate cost workflow reframe --duration 7.1 --resolution 1080p`. Do not use `mediaio generate workflow cost ...`.
+The current BIN has no standalone pre-submit cost command. `mediaio workflow get <workflow_name>` includes raw workflow credit configuration when the registry provides it. If model or workflow detail does not provide enough data for an exact estimate, report that the exact cost is currently unavailable.

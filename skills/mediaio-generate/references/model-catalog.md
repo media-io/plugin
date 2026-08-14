@@ -1,12 +1,13 @@
 # Model Catalog
 
-The full lineup of generation models available through Media.io. Each entry has its own sweet spot — pick the one that matches your brief. For the actual `--model` ID to pass to `mediaio generate create`, run `mediaio model list --json` and look up by display name.
+> Migration inventory: product names and recommendations below may be ahead of the installed BIN registry. Use only an exact `job_type` returned by `mediaio model list`, then inspect it with `mediaio model get <job_type>` before submission.
+
+The catalog below records Media.io model positioning. Product labels are not guaranteed to be executable `job_type` values.
 
 Preferred defaults for examples and quick-start guidance in this repo:
 - **Images/design/text:** `gpt_image_2` (general/high-fidelity) and `nano_banana_2` (character/cartoon).
 - **Video:** `seedance_2_0` (all-purpose serious video).
 - **Character/stylized image work:** `text2image_soul_v2`.
-- **Ads/UGC/product demos:** `marketing_studio_video` or `marketing_studio_image`.
 - **Audio:** `seed_audio` (general text-to-audio, voice-style, SFX, ambience, and music-like audio).
 - **Video analysis:** Virality Predictor (`brain_activity`) for attention, hook, retention, and virality scoring. It may appear under text/analysis because the output is a report, but the input and intent are video analysis.
 
@@ -35,7 +36,6 @@ Preferred defaults for examples and quick-start guidance in this repo:
 | Grok Imagine | xAI | Expressive, high-contrast, bold creative outputs. Worth trying for anime and stylized looks. |
 | Recraft V4.1 | Recraft | **Clean graphic and vector-style design assets.** Logos, icons, flat illustrations, brand marks, and controlled-palette visuals. Use `model_type=vector` for vector-like output and `standard` for raster-style graphics. |
 | Cinema Studio Image 2.5 | Media.io | Cinematic still frames up to 4K, dramatic film look. |
-| Marketing Studio Image | Media.io | **Branded image ads.** Retrieval-augmented over the user's avatars and products — runs inside the Marketing Studio flow. |
 | Auto | Media.io | **Smart routing layer.** Picks the best image model from the prompt automatically. Use when the user's intent is open and you don't want to commit to a specific model. |
 
 ## Video models
@@ -47,7 +47,6 @@ Preferred defaults for examples and quick-start guidance in this repo:
 | Kling 3.0 | Kling | **Cheaper Seedance 2.0 substitute** for single-plane scenes that don't need heavy motion. Multi-shot, audio sync, motion transfer. |
 | Kling 3.0 Turbo | Kling | **Fast Kling option for simple motion.** Text-to-video and single start-frame animation when the user explicitly wants speed, lower cost, or a quick Kling 3.0 variant. |
 | Seedance 1.5 Pro | Bytedance | A budget-friendly Seedance for clean single-take shots. |
-| Marketing Studio | Media.io | **All advertising and commercial video** — UGC, unboxing, TV spot, product showcase. The default whenever the brief is "make an ad". See `marketing-modes.md`. |
 | Cinema Studio Video 3.0 | Media.io | **Top-tier cinema-grade execution.** The pick for film-look briefs at the highest fidelity. |
 | Veo 3.1 Lite | Google | **Fast and cost-effective Veo.** Built for batch and volume work. |
 | Google Veo 3.1 | Google | Ultra-realistic, top-tier cinematic quality. Quality tiers basic/high/ultra. Format set is constrained — verify accepted aspect ratio and duration before submitting. |
@@ -94,44 +93,41 @@ Preferred defaults for examples and quick-start guidance in this repo:
 Practical defaults from production use. Match by intent, not surface keyword. When two could apply, the higher entry wins.
 
 Core focus first: GPT Image 2 for images/design/text, Seedance 2.0 for video,
-Nano Banana 2/Lite/Pro for character or reference-driven image work, and
-Marketing Studio for ads and brand/product content. Use Seed Audio 1.0 for audio.
+Nano Banana 2/Lite/Pro for character or reference-driven image work. Use Seed Audio 1.0 for audio.
 
 ### Image — pick this default
 
 1. **Brand product visual (Pinterest pin, lifestyle, hero banner, ad pack, virtual try-on, restyle)** → use `mediaio-product-photoshoot` instead. NOT this skill.
 2. **Generated product concept / packaging / can / bottle with brand name or label text** → GPT Image 2.
-3. **Branded ad image with presenter avatar + product (Marketing Studio shape with RAG over user assets)** → Marketing Studio Image.
-4. **Aesthetic UGC / fashion editorial / lifestyle character** → Soul 2.0.
-5. **Cinematic still frame** → Soul Cinema.
-6. **Highly characterful, creative character (text-only, distinctive persona, no reference photo)** → Soul Cast.
-7. **Locations / environments / no-people scenes** → Soul Location. Best in class — nothing else matches.
-8. **Logo, icon, vector-like illustration, brand mark, controlled-palette graphic** → Recraft V4.1. Use `--model_type vector` for vector-style output.
-9. **Face edit + complex scene swap (more than outfit change, no heavy filters)** → Seedream 4.5. Seedream 5.0 Lite for the same niche but faster.
-10. **Soul Character (reference id from `mediaio-soul-id`)** → Soul 2.0 for stills; Soul Cinema for cinematic vibe.
-11. **Anime / stylized / non-default look where defaults feel flat** → Flux Kontext Max or Grok Imagine. Worth trying.
-12. **Character or cartoon-style work** → Nano Banana 2; step up to Nano Banana Pro on hard cases.
-13. **Fast Nano Banana reference edit where speed/cost matters** → Nano Banana 2 Lite (`nano_banana_2_lite`).
-14. **Fast and cheap iteration / drafts / LoRA work** → Z Image.
-15. **Default for everything else** → GPT Image 2. High-fidelity general generation, graphic design, UI, banners, anything with on-image text.
-16. **Intent-only request, no preference, want auto-routing** → Auto.
+3. **Aesthetic UGC / fashion editorial / lifestyle character** → Soul 2.0.
+4. **Cinematic still frame** → Soul Cinema.
+5. **Highly characterful, creative character (text-only, distinctive persona, no reference photo)** → Soul Cast.
+6. **Locations / environments / no-people scenes** → Soul Location. Best in class — nothing else matches.
+7. **Logo, icon, vector-like illustration, brand mark, controlled-palette graphic** → Recraft V4.1. Use `--model_type vector` for vector-style output.
+8. **Face edit + complex scene swap (more than outfit change, no heavy filters)** → Seedream 4.5. Seedream 5.0 Lite for the same niche but faster.
+9. **Soul Character (reference id from `mediaio-soul-id`)** → Soul 2.0 for stills; Soul Cinema for cinematic vibe.
+10. **Anime / stylized / non-default look where defaults feel flat** → Flux Kontext Max or Grok Imagine. Worth trying.
+11. **Character or cartoon-style work** → Nano Banana 2; step up to Nano Banana Pro on hard cases.
+12. **Fast Nano Banana reference edit where speed/cost matters** → Nano Banana 2 Lite (`nano_banana_2_lite`).
+13. **Fast and cheap iteration / drafts / LoRA work** → Z Image.
+14. **Default for everything else** → GPT Image 2. High-fidelity general generation, graphic design, UI, banners, anything with on-image text.
+15. **Intent-only request, no preference, want auto-routing** → Auto.
 
 ### Video — pick this default
 
-1. **All advertising / commercial video (UGC, unboxing, TV spot, product showcase, branded ad)** → Marketing Studio. See `marketing-modes.md`.
-2. **Default all-purpose serious video (multi-shot, consistent identity, motion-heavy, production work, image-to-video, 4–15s requests)** → Seedance 2.0. SOTA. Validate this first before falling back.
-3. **Single-plane scene without strong dynamics, cheaper** → Kling 3.0. Substitute for Seedance 2.0 when motion isn't critical; use Kling 3.0 Turbo when the user asks for a faster/lower-cost Kling result or names Turbo.
-4. **Cheap clean shot without cuts, only when the user asks for budget output** → Seedance 1.5 Pro. Do not pick it over Seedance 2.0 just because duration validation looks simpler.
-5. **Image-to-video with explicit first frame** → Kling 3.0 with a start frame, or Seedance 2.0 with a start frame for higher motion.
-6. **Cinema-grade execution (highest fidelity, film look)** → Cinema Studio Video 3.0.
-7. **Cheap with strong physics, audio not needed** → Minimax Hailuo.
-8. **Fast batch / volume** → Veo 3.1 Lite.
-9. **Veo-format-bound work (specific aspect / duration set Veo accepts)** → Veo 3.1; Veo 3 is slightly behind.
-10. **Stylized / animation-style edit-driven work** → Wan 2.7.
-11. **Stylized cheap experimental** → Wan 2.6.
-12. **Multimodal Google reference-to-video from up to 7 images or one video reference** → Gemini Omni Flash (`gemini_omni`). Do not make it the default over Seedance 2.0 for general video.
-13. **Anime / bold-style image-to-video with a start frame** → Grok Video 1.5 (`grok_video_v15`). Requires one `--start-image` or `--image`, duration 2–15s, resolution `480p` or `720p`.
-14. **Anime / bold-style text-to-video or older Grok-style outputs where defaults feel flat** → Grok Imagine (video). Worth trying.
+1. **Default all-purpose serious video (multi-shot, consistent identity, motion-heavy, production work, image-to-video, 4–15s requests)** → Seedance 2.0. SOTA. Validate this first before falling back.
+2. **Single-plane scene without strong dynamics, cheaper** → Kling 3.0. Substitute for Seedance 2.0 when motion isn't critical; use Kling 3.0 Turbo when the user asks for a faster/lower-cost Kling result or names Turbo.
+3. **Cheap clean shot without cuts, only when the user asks for budget output** → Seedance 1.5 Pro. Do not pick it over Seedance 2.0 just because duration validation looks simpler.
+4. **Image-to-video with explicit first frame** → Kling 3.0 with a start frame, or Seedance 2.0 with a start frame for higher motion.
+5. **Cinema-grade execution (highest fidelity, film look)** → Cinema Studio Video 3.0.
+6. **Cheap with strong physics, audio not needed** → Minimax Hailuo.
+7. **Fast batch / volume** → Veo 3.1 Lite.
+8. **Veo-format-bound work (specific aspect / duration set Veo accepts)** → Veo 3.1; Veo 3 is slightly behind.
+9. **Stylized / animation-style edit-driven work** → Wan 2.7.
+10. **Stylized cheap experimental** → Wan 2.6.
+11. **Multimodal Google reference-to-video from up to 7 images or one video reference** → Gemini Omni Flash (`gemini_omni`). Do not make it the default over Seedance 2.0 for general video.
+12. **Anime / bold-style image-to-video with a start frame** → Grok Video 1.5 (`grok_video_v15`). Requires one `--start-image` or `--image`, duration 2–15s, resolution `480p` or `720p`.
+13. **Anime / bold-style text-to-video or older Grok-style outputs where defaults feel flat** → Grok Imagine (video). Worth trying.
 
 ### Video analysis — pick this default
 
@@ -147,7 +143,6 @@ Marketing Studio for ads and brand/product content. Use Seed Audio 1.0 for audio
 1. **Default audio generation (text-to-audio, voice-style, SFX, ambience, foley, impacts, environmental audio, or music-like audio)** → Seed Audio 1.0 (`seed_audio`). Requires `--prompt`; use optional `--audio-references`/`--image-references` only when references are provided.
 2. **Create music, backing tracks, jingles, or instrumental beds with the specialist legacy music model** → Sonilo Music (`sonilo_music`) only when the user names Sonilo or Seed Audio is not appropriate. Requires `--prompt` and `--duration`.
 3. **Create SFX with the specialist legacy SFX model** → Mirelo Text to Audio (`mirelo_text_to_audio`) only when the user names Mirelo or Seed Audio is not appropriate. Requires `--prompt` and `--duration`.
-4. **Add soundtrack/audio to a generated video ad** → use Marketing Studio Video with `--generate_audio true`, not Seed Audio/Sonilo/Mirelo.
 
 ### Things to keep in mind
 
@@ -179,7 +174,6 @@ Each model accepts a fixed set of media roles or `*_references` params. When uns
 | Grok Video 1.5 | `start_image` (required max 1; CLI also accepts `--image`) |
 | Veo 3.1 | `start_image` (max 1) |
 | Veo 3 | `image` (max 1) |
-| Marketing Studio (video) | `image`, `start_image`, `end_image` |
 | Virality Predictor (`brain_activity`) | `video` |
 | Multi-Image to 3D | `image` (1–4) |
 | Seed Audio 1.0 | `audio_references` or `image_references` (optional; mutually exclusive) |
@@ -207,7 +201,6 @@ Common patterns:
 - **Soul Cinema**: same as Soul 2.0 plus `21:9`. Quality `1.5k` or `2k`.
 - **Soul Location**: `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9`, `9:21`. No quality/resolution selector; dimensions are fixed by aspect ratio.
 - **Veo 3.1**: `16:9` or `9:16`. Duration `4`, `6`, or `8` only. Quality `basic`/`high`/`ultra`.
-- **Marketing Studio (video)**: `auto`/`21:9`/`16:9`/`4:3`/`1:1`/`3:4`/`9:16`. Resolution `480p` or `720p`.
 
 ## When you submit an unknown value
 

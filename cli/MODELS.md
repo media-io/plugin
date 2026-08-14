@@ -109,21 +109,6 @@ Constraints:
 - At most 10 image_references are allowed.
 - Aspect_ratio 'auto' requires at least one image_reference.
 
-### marketing_studio_image — Marketing Studio Image
-
-| flag | required | default | values |
-|---|---|---|---|
-| `--aspect_ratio` | false | `1:1` | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` |
-| `--image-references` (or `--image`) (0..14) | false | — | UUID or path |
-| `--prompt` | true | — | string |
-| `--resolution` | false | `1k` | `1k`, `2k`, `4k` |
-
-Constraints:
-
-- At most 14 image_references are allowed.
-- Aspect_ratio 'auto' requires at least one image_reference.
-- 'prompt' or at least one image_reference is required.
-
 ### nano_banana — Nano Banana
 
 | flag | required | default | values |
@@ -500,35 +485,6 @@ Example:
 ```bash
 mediaio generate create kling3_0_turbo --prompt "fast handheld product reveal on a clean studio table" --start-image ./first.png --duration 5 --resolution 720p --wait
 ```
-
-### marketing_studio_video — Marketing Studio Video
-
-| flag | required | default | values |
-|---|---|---|---|
-| `--ad_reference_id` | false | — | ad-reference UUID |
-| `--aspect_ratio` | false | `16:9` | `auto`, `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` |
-| `--avatar_ids` | false | — | array |
-| `--avatars` | false | — | array |
-| `--duration` | false | `15` | integer |
-| `--end-image` (single) | false | — | UUID or path |
-| `--generate_audio` | false | `false` | boolean |
-| `--hook_id` | false | — | hook UUID |
-| `--image-references` (or `--image`) (repeated) | false | — | UUID or path |
-| `--mode` | false | `ugc` | string |
-| `--product_ids` | false | — | array |
-| `--prompt` | true | — | string |
-| `--resolution` | false | `720p` | `480p`, `720p`, `1080p` |
-| `--setting_id` | false | — | setting UUID |
-| `--specific_mode` | false | `default` | `default`, `web_product`, `from_storyboard` |
-| `--start-image` (single) | false | — | UUID or path |
-| `--storyboard_id` | false | — | storyboard UUID |
-| `--web_product_ids` | false | — | array |
-| `--web_product_type` | false | — | `desktop`, `mobile` |
-
-Constraints:
-
-- Ad_reference_id cannot be combined with hook_id or setting_id.
-- Product_ids and web_product_ids cannot both be set.
 
 ### minimax_hailuo — Minimax Hailuo
 
