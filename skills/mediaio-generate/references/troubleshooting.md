@@ -9,11 +9,13 @@
 
 ## Host network permission
 
-- Before the first networked `mediaio` command, use the host's network-only approval, scoped to the required destination when supported. A global Codex permission-profile edit is not required for normal use.
+- Treat approval as a pre-execution gate: the first networked `mediaio` Shell/Bash tool call must request host approval before the process starts. Never run the command once in the default sandbox merely to discover whether networking is blocked.
+- Approval metadata belongs to the host tool call, not to `mediaio` CLI flags. Wait for acceptance or automatic approval before launching `account status`, `auth login`, discovery, upload, generation, or wait commands.
+- Use the host's network-only approval, scoped to the required destination when supported. A global Codex permission-profile edit is not required for normal use.
 - Treat general out-of-sandbox approval as a wider fallback, not an equivalent default. Use it only when network-only approval is unavailable, after reviewing the extra filesystem/process scope and presenting the approval to the user.
-- `dial tcp: lookup <host>: no such host`, `Could not resolve host`, or DNS `operation not permitted` inside an agent host → retry the read-only command with host-native network approval.
+- If the host cannot request network-only or general out-of-sandbox approval, report the limitation and stop instead of launching a known-to-fail sandboxed request.
+- If an unapproved read-only call unexpectedly ran and returned `dial tcp: lookup <host>: no such host`, `Could not resolve host`, or DNS `operation not permitted`, retry it only after obtaining host-native network approval.
 - For `upload create` and `generate create`, request approval before execution. Do not automatically retry after timeout, reset, EOF or another ambiguous result because the write may already have reached the server.
-- If the host has no network-approval capability, report that limitation directly instead of asking the user to reauthenticate or weaken global security settings.
 
 ## Validation
 
