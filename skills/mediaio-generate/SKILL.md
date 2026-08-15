@@ -10,6 +10,9 @@ description: |
   Always discover the exact job type and schema before submission. Use the
   human-readable discovery output, upload local files before generation,
   submit with `generate create`, and wait with the separate `generate wait` command.
+  On hosts that sandbox local command networking, the first networked
+  `mediaio` Shell/Bash tool call must request host approval before process
+  launch. Never probe network availability by running it in the default sandbox.
 allowed-tools: Bash
 ---
 
@@ -22,10 +25,11 @@ Submit image and video jobs through the current `mediaio` CLI contract. Treat CL
 Before any generation command:
 
 1. Run `command -v mediaio` and `mediaio version`. If the command is missing, tell the user that the shared Media.io CLI must be installed; do not silently install a second runtime from this skill.
-2. Before the first networked `mediaio` command, obtain the host's narrowest native network-only approval, scoped to the required destination when supported. If network-only approval is unavailable, use a general out-of-sandbox approval only after reviewing its wider scope and presenting that approval to the user. A global Codex permission-profile edit is not a prerequisite.
-3. Run `mediaio account status`. If authentication is genuinely missing, expired or rejected by the server, run `mediaio auth login` and wait for the browser flow to finish. DNS, TLS, timeout, connection and sandbox-denial errors are network failures, not authentication failures.
-4. On a network or permission failure, load `references/troubleshooting.md`. Retry read-only commands only after a clear pre-connection sandbox/DNS failure; never automatically retry a write with an ambiguous result.
-5. Run `mediaio config get` when an endpoint or environment mismatch is suspected.
+2. **Network approval gate (hard requirement).** Before launching the first networked `mediaio` process in the current task, submit that Shell/Bash tool call through the host's narrowest native network-only approval mechanism, scoped to the required destination when supported. Do not first run `mediaio account status`, `auth login`, discovery, upload, generation, or wait commands in the default sandbox as a connectivity probe. Approval metadata belongs to the host tool call, not to `mediaio` CLI arguments.
+3. Wait until the approval is accepted or automatically approved before launching the process. If network-only approval is unavailable, use a general out-of-sandbox approval only after reviewing its wider scope and presenting that approval to the user. If the host cannot request either form of approval, report the host limitation and stop instead of attempting a known-to-fail sandboxed request. A global Codex permission-profile edit is not a prerequisite.
+4. Run `mediaio account status` using the approved execution path. If authentication is genuinely missing, expired or rejected by the server, run `mediaio auth login` and wait for the browser flow to finish. DNS, TLS, timeout, connection and sandbox-denial errors are network failures, not authentication failures.
+5. On a network or permission failure, load `references/troubleshooting.md`. Retry read-only commands only after a clear pre-connection sandbox/DNS failure; never automatically retry a write with an ambiguous result.
+6. Run `mediaio config get` when an endpoint or environment mismatch is suspected.
 
 ## UX Rules
 
