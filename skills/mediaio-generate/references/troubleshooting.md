@@ -5,6 +5,15 @@
 - `Session expired.` → `mediaio auth login`
 - `Stored credentials are for ... but current environment ...` → `mediaio auth login` for the current API URL.
 - `Not authenticated.` → first `mediaio auth login`.
+- Only missing credentials, HTTP 401, or an explicit token-refresh rejection should be treated as authentication failures. DNS, TLS, timeout and connection errors do not become valid by logging in again.
+
+## Host network permission
+
+- Before the first networked `mediaio` command, use the host's network-only approval, scoped to the required destination when supported. A global Codex permission-profile edit is not required for normal use.
+- Treat general out-of-sandbox approval as a wider fallback, not an equivalent default. Use it only when network-only approval is unavailable, after reviewing the extra filesystem/process scope and presenting the approval to the user.
+- `dial tcp: lookup <host>: no such host`, `Could not resolve host`, or DNS `operation not permitted` inside an agent host → retry the read-only command with host-native network approval.
+- For `upload create` and `generate create`, request approval before execution. Do not automatically retry after timeout, reset, EOF or another ambiguous result because the write may already have reached the server.
+- If the host has no network-approval capability, report that limitation directly instead of asking the user to reauthenticate or weaken global security settings.
 
 ## Validation
 

@@ -22,9 +22,10 @@ Submit image and video jobs through the current `mediaio` CLI contract. Treat CL
 Before any generation command:
 
 1. Run `command -v mediaio` and `mediaio version`. If the command is missing, tell the user that the shared Media.io CLI must be installed; do not silently install a second runtime from this skill.
-2. Run `mediaio account status`. If authentication is missing or expired, run `mediaio auth login` and wait for the browser flow to finish.
-3. Run `mediaio config get` when an endpoint or environment mismatch is suspected.
-
+2. Before the first networked `mediaio` command, obtain the host's narrowest native network-only approval, scoped to the required destination when supported. If network-only approval is unavailable, use a general out-of-sandbox approval only after reviewing its wider scope and presenting that approval to the user. A global Codex permission-profile edit is not a prerequisite.
+3. Run `mediaio account status`. If authentication is genuinely missing, expired or rejected by the server, run `mediaio auth login` and wait for the browser flow to finish. DNS, TLS, timeout, connection and sandbox-denial errors are network failures, not authentication failures.
+4. On a network or permission failure, load `references/troubleshooting.md`. Retry read-only commands only after a clear pre-connection sandbox/DNS failure; never automatically retry a write with an ambiguous result.
+5. Run `mediaio config get` when an endpoint or environment mismatch is suspected.
 
 ## UX Rules
 
@@ -114,7 +115,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 - `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.
 - endpoint `404` during create → verify the BIN build routes creation through the configured combo_alg endpoint; do not switch models because this is not a prompt/model-selection error.
-- login/session errors → run `mediaio auth login`.
+- missing credentials, an HTTP 401, or an explicit token-refresh rejection → run `mediaio auth login`.
 
 ## Reference docs
 
