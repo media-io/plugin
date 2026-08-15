@@ -1,1 +1,4 @@
 .DS_Store
+scripts/deploy-local.sh
+scripts/setup-local-mediaio.sh
+bin/mediaio
