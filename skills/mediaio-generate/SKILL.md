@@ -66,7 +66,14 @@ Workflows and effects are separate discovery views, but they are submitted throu
 
    For an effect, stop if its required parameters have not already been verified from current BIN/service evidence; `effect list` alone is not a parameter schema.
 
-3. **Prepare local media.** The current generator does not auto-upload local paths. Upload each local file first, save the returned `file_id`, then pass that ID using the exact parameter name shown by `model get` or `workflow get`:
+3. **Prepare local media and check file access.** The current generator does not auto-upload local paths. Before reading or uploading each user-provided path:
+
+   - Resolve relative paths against the current working directory without following an untrusted path blindly, and determine whether the resolved file is inside the active workspace.
+   - For a path inside the workspace, continue with the normal host file-read rules.
+   - For a path outside the workspace, pause and request the host's native file-read authorization for the exact file (or the smallest explicit set of files). State the paths and that they will be uploaded to Media.io. Do not launch `mediaio upload create` until that authorization is accepted.
+   - If the host cannot provide file-read authorization, stop and ask the user to grant access or move/copy the file into the workspace. Never bypass this by broadening access silently.
+
+   After the required file authorization and network approval are available, upload each local file first, save the returned `file_id`, then pass that ID using the exact parameter name shown by `model get` or `workflow get`:
 
    ```bash
    mediaio upload create ./reference.png

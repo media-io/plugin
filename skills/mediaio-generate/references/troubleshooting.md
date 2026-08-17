@@ -17,6 +17,12 @@
 - If an unapproved read-only call unexpectedly ran and returned `dial tcp: lookup <host>: no such host`, `Could not resolve host`, or DNS `operation not permitted`, retry it only after obtaining host-native network approval.
 - For `upload create` and `generate create`, request approval before execution. Do not automatically retry after timeout, reset, EOF or another ambiguous result because the write may already have reached the server.
 
+## Host file permission
+
+- A local input outside the active workspace requires a separate host-native file-read authorization before `mediaio upload create` starts.
+- Name the exact path(s) and explain that the files will be read and uploaded to Media.io. Do not treat network approval as permission to read arbitrary local files.
+- If file-read authorization is denied or unavailable, stop the upload and ask the user to grant access or move/copy the input into the workspace.
+
 ## Validation
 
 - `Missing required params: prompt` — user gave no prompt. Ask.
