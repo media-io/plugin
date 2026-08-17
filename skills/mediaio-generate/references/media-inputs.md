@@ -20,7 +20,13 @@ The detail output identifies the exact parameter names, whether each one is requ
 
 ## Upload local files
 
-The current generator does not auto-upload paths passed to generation parameters. Upload every local file first:
+The current generator does not auto-upload paths passed to generation parameters. Before upload, resolve each user-provided path and check it against the active workspace:
+
+- Paths inside the workspace use the host's normal file-read rules.
+- Paths outside the workspace require an explicit host-native file-read authorization for the exact path (or the smallest explicit set of paths). Tell the user which files will be read and uploaded to Media.io, and wait for approval before starting `mediaio upload create`.
+- If file-read authorization is unavailable or denied, do not try the upload. Ask the user to grant access or move/copy the file into the workspace.
+
+After file access and network approval are granted, upload every local file first:
 
 ```bash
 mediaio upload create ./reference.png
