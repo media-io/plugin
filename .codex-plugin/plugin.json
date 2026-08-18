@@ -1,6 +1,6 @@
 {
   "name": "media-io",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Media.io plugin for agent-driven video and image creation workflows.",
   "author": {
     "name": "Media.io",
