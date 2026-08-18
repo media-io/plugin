@@ -1,0 +1,21 @@
+{
+  "should_trigger": [
+    "把这份 workflow/list、uni_fun_code 和用户输入转换成 combo_alg body",
+    "将 text2image_soul_character 的 prompt、ratio 映射进 ai_config",
+    "Convert this Media.io workflow config and form data into a combo_alg payload",
+    "图生视频首尾帧字段怎样按 backfill 转换",
+    "把 reference2video 的混合媒体数组转换为 used_array 参数"
+  ],
+  "should_not_trigger": [
+    "帮我选择一个最适合的 Media.io 文生图模型",
+    "帮我生成一张图片并等待任务完成",
+    "把本地图片上传到 Media.io",
+    "调用 combo_alg 创建任务",
+    "查询一个已经创建的 Media.io task 状态"
+  ],
+  "boundary_cases": [
+    "只有 prompt 但没有 workflow/list 配置时，应报告缺少转换输入，不应获取配置或猜参数",
+    "只有 workflow/list 但没有已确认的 uni_fun_code 时，应报告 MODEL_REQUIRED，不应推荐模型",
+    "用户要求实际提交 body 时，本 skill 只返回转换结果，不执行 HTTP 请求"
+  ]
+}

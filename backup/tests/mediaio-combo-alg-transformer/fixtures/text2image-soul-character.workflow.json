@@ -1,0 +1,197 @@
+{
+  "code": 0,
+  "data": {
+    "list": [
+      {
+        "id": 651,
+        "fun_module": "text2image",
+        "fun_category": "",
+        "uni_fun_code": "text2image_soul_character",
+        "media": "image",
+        "name": "ToMoviee Lite",
+        "description": "Create hyper-realistic characters with unmatched precision and control",
+        "group": "",
+        "action_config": {
+          "is_hot": true,
+          "is_new": false,
+          "is_pro": false,
+          "is_all_free": false,
+          "is_vip_free": false,
+          "is_vip_free_by_agent": false,
+          "trial_code": "",
+          "vip_level_free": "",
+          "from_assets": false,
+          "virtual_discount": "",
+          "need_check_face": false,
+          "recommend_workflow": null,
+          "process_concurrent_number": 0,
+          "task_daily_total": 0,
+          "not_publish_explore": false,
+          "need_vip_control": false,
+          "ltd_free": true,
+          "zero_can_unlimited": false,
+          "country_limited": true,
+          "world_cup": false,
+          "no_login": true,
+          "no_login_used_counts": 2,
+          "need_share_used_counts": 5,
+          "is_role_generate": false,
+          "first_tomoviee_free_use": true,
+          "first_nano_2_free_use": false,
+          "seo_path": ""
+        },
+        "credit_config": {
+          "val": 0,
+          "virtual_discount_val": null,
+          "type": "field_conf",
+          "field_conf": [
+            {
+              "val": 0,
+              "fields": [
+                {
+                  "field": "concurrency_patterns",
+                  "opt": "in",
+                  "val": "4"
+                },
+                {
+                  "field": "country_limited",
+                  "opt": "in",
+                  "val": "not_t3"
+                }
+              ]
+            }
+          ]
+        },
+        "ui_config": {
+          "params_ui": [
+            {
+              "ui": "ui_prompt",
+              "type": "normal",
+              "param": "prompt",
+              "used_array": false,
+              "required": null,
+              "default": "",
+              "placeholder": "Describe the image you want to generate.",
+              "length": [
+                1,
+                2000
+              ],
+              "options": []
+            },
+            {
+              "ui": "ui_ratio_box",
+              "type": "backfill",
+              "param": "ratio",
+              "used_array": false,
+              "required": null,
+              "default": "",
+              "backfill": [
+                "width",
+                "height"
+              ],
+              "options": [
+                {
+                  "name": "2:3",
+                  "value": [
+                    848,
+                    1264
+                  ]
+                },
+                {
+                  "name": "1:1",
+                  "value": [
+                    1024,
+                    1024
+                  ]
+                },
+                {
+                  "name": "3:2",
+                  "value": [
+                    1264,
+                    848
+                  ]
+                }
+              ]
+            },
+            {
+              "ui": "ui_ratio_button",
+              "type": "normal",
+              "param": "concurrency_patterns",
+              "used_array": false,
+              "required": null,
+              "default": "1",
+              "options": [
+                {
+                  "name": "4",
+                  "value": 4
+                }
+              ]
+            }
+          ]
+        },
+        "aigc_config": [
+          {
+            "workflow_id": "1863789496648347716",
+            "point_code": "mi_z_image",
+            "params": [
+              {
+                "alg_code": "mi_z_image",
+                "paraslist": [
+                  {
+                    "pramas_name": "lora_name",
+                    "type": 0,
+                    "default": "",
+                    "input": "",
+                    "params_limit_type": "string",
+                    "params_limit": null
+                  },
+                  {
+                    "pramas_name": "strength_model",
+                    "type": 2,
+                    "default": "0",
+                    "input": "",
+                    "params_limit_type": "float",
+                    "params_limit": null
+                  },
+                  {
+                    "pramas_name": "height",
+                    "type": 1,
+                    "default": "1264",
+                    "input": "",
+                    "params_limit_type": "integer",
+                    "params_limit": null
+                  },
+                  {
+                    "pramas_name": "width",
+                    "type": 1,
+                    "default": "848",
+                    "input": "",
+                    "params_limit_type": "integer",
+                    "params_limit": null
+                  },
+                  {
+                    "pramas_name": "prompt",
+                    "type": 0,
+                    "default": "",
+                    "input": "",
+                    "params_limit_type": "string",
+                    "params_limit": null
+                  },
+                  {
+                    "pramas_name": "template_id",
+                    "type": 0,
+                    "default": "image_turbo",
+                    "input": "",
+                    "params_limit_type": "string",
+                    "params_limit": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "extra_data": {}
+      }
+    ]
+  }
+}

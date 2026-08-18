@@ -1,0 +1,64 @@
+# Workflow Generation
+
+Use only workflows exposed by the currently installed BIN. Workflow identifiers and schemas are dynamic; historical names in planning documents are not executable unless they appear in live discovery.
+
+## Discover
+
+```bash
+mediaio workflow list
+mediaio workflow get <workflow_name>
+```
+
+Take the exact identifier from the first column of `workflow list`. `workflow get` prints the accepted parameters, defaults, allowed values, media fields, and raw credit configuration. These commands produce their documented human-readable output and have no optional JSON mode.
+
+## Prepare media
+
+Generation parameters accept uploaded file IDs, not local paths. Upload every local input first:
+
+```bash
+mediaio upload create ./source.mp4
+mediaio upload create ./reference.png
+```
+
+Save each returned `file_id`, then map it to the exact parameter name shown by `workflow get`.
+
+## Submit
+
+Workflows use the same create command as models:
+
+```bash
+mediaio generate create <workflow_name> [--param value]...
+```
+
+The create response contains a `task_id`. Wait separately:
+
+```bash
+mediaio generate wait <task_id> --timeout 20m --interval 3s
+```
+
+To query a known task directly when both values are available:
+
+```bash
+mediaio generate query <workflow_name> <task_id>
+```
+
+## Cost information
+
+The current BIN has no standalone pre-submit cost command. Inspect the raw credit configuration printed by `mediaio workflow get <workflow_name>`. If that data is insufficient for an exact estimate, tell the user that the exact cost is currently unavailable instead of inventing it.
+
+## Historical inventory
+
+`draw_to_video` and `reframe` were documented by the migrated reference set, but they are not current commands unless live `workflow list` returns those exact identifiers. Preserve their product requirements as planning input only:
+
+- Draw-to-video: source video, edited frame, timestamp, and edit instruction.
+- Reframe: source video, target aspect ratio, optional resolution, and optional reference media.
+
+## Maintainer rule
+
+For every documented workflow:
+
+1. Confirm its exact identifier in live `mediaio workflow list`.
+2. Confirm its complete schema with `mediaio workflow get <workflow_name>`.
+3. Build examples only with `mediaio generate create` followed by `mediaio generate wait`.
+4. Keep result lookup on `mediaio generate query <workflow_name> <task_id>`.
+5. Document cost only from the credit configuration returned by the live BIN.

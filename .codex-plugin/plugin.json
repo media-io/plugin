@@ -1,0 +1,42 @@
+{
+  "name": "media-io",
+  "version": "0.1.5",
+  "description": "Media.io plugin for agent-driven video and image creation workflows.",
+  "author": {
+    "name": "Media.io",
+    "email": "mi_dev@300624.cn",
+    "url": "https://media.io"
+  },
+  "homepage": "https://media.io",
+  "keywords": [
+    "media.io",
+    "video",
+    "video-editing",
+    "editor",
+    "captions",
+    "subtitles",
+    "transcription",
+    "timeline",
+    "codex",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Media.io",
+    "shortDescription": "Edit and create videos or images in Media.io from agent-driven",
+    "longDescription": "Workflow skills for routing video editing and creation work to the Media.io web: importing local or attached media, creating editable projects, editing timelines, adding captions/subtitles, generating AI media assets, exporting, and verifying editor-visible changes.",
+    "developerName": "Media.io",
+    "category": "Design",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://media.io",
+    "defaultPrompt": [
+      "Create images in Media.io",
+      "Add captions or subtitles to this video",
+      "Trim and clean up this video",
+      "Add a simple overlay or transition"
+    ],
+    "brandColor": "#111827",
+    "composerIcon": "./assets/logo-light.svg",
+    "logo": "./assets/logo-light.svg"
+  }
+}
