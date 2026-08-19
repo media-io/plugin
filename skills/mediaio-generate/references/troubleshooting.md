@@ -22,6 +22,7 @@
 - A local input outside the active workspace requires a separate host-native file-read authorization before `mediaio upload create` starts.
 - Name the exact path(s) and explain that the files will be read and uploaded to Media.io. Do not treat network approval as permission to read arbitrary local files.
 - If file-read authorization is denied or unavailable, stop the upload and ask the user to grant access or move/copy the input into the workspace.
+- Network approval does not authorize local state writes; request filesystem-write authorization before commands such as `mediaio auth login` that persist credentials. Do not infer whether the target is inside the sandbox.
 
 ## Validation
 
