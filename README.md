@@ -1,6 +1,34 @@
 # Media.io Agent Skills
 
+`media-plugin-main` 同时维护 `Codex` 与 `Claude Code` 两套插件清单，二者共享同一份
+`skills/` 内容，但各自使用独立的插件 manifest：
+
+- `Codex`：`.codex-plugin/plugin.json`
+- `Claude Code`：`.claude-plugin/plugin.json`
+
+当前 `Claude Code` 适配复用本机已安装的 `mediaio` CLI，不依赖 `media-plugin-api` /
+`media-plugin-mcp` 的远端 MCP 配置。
+
+## 安装
+
+### Codex
+
 通过 `npx skills add <repository>/skills` 安装 Media.io Skills。
+
+### Claude Code
+
+先安装本地 CLI runtime：
+
+```bash
+npm install -g @mediaio/cli
+mediaio auth login
+mediaio version
+```
+
+再按 `Claude Code` 的插件安装方式加载本仓库，并使用 `.claude-plugin/` 作为插件清单。
+
+> `Claude Code` 插件不会静默安装第二套 binary；运行 skill 前应确保 `mediaio` 命令已在
+> 当前机器可用。
 
 ## 当前 Skills
 
