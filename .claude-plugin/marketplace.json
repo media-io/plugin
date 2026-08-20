@@ -8,8 +8,8 @@
     {
       "name": "media-io",
       "source": "./",
-      "description": "Media.io plugin for agent-driven video editing and creation workflows from Claude Code.",
-      "version": "0.1.0",
+      "description": "Media.io plugin for agent-driven video and image creation workflows from Claude Code.",
+      "version": "0.2.0",
       "skills": [
         {
           "name": "mediaio-generate",
