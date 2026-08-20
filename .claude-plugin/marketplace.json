@@ -1,5 +1,6 @@
 {
   "name": "media-io",
+  "description": "Media.io agent skills for video and image creation workflows from Claude Code.",
   "owner": {
     "name": "Media.io",
     "url": "https://media.io"
@@ -11,11 +12,7 @@
       "description": "Media.io plugin for agent-driven video and image creation workflows from Claude Code.",
       "version": "0.2.0",
       "skills": [
-        {
-          "name": "mediaio-generate",
-          "path": "skills/mediaio-generate",
-          "invoke": "/media-io:mediaio-generate"
-        }
+        "./skills/"
       ]
     }
   ]
