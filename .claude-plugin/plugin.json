@@ -1,15 +1,15 @@
 {
   "name": "media-io",
-  "version": "0.1.0",
-  "description": "Media.io plugin for agent-driven video editing and creation workflows from Claude Code.",
+  "version": "0.2.0",
+  "description": "Media.io plugin for agent-driven video and image creation workflows from Claude Code.",
   "author": {
     "name": "Media.io",
     "email": "mi_dev@300624.cn",
     "url": "https://media.io"
   },
   "homepage": "https://media.io",
-  "repository": "TODO: add repository URL",
-  "license": "TODO: add license",
+  "repository": "https://github.com/media-io/plugin",
+  "license": "GPL-3.0-only",
   "keywords": [
     "media.io",
     "video",
@@ -19,19 +19,7 @@
     "subtitles",
     "transcription",
     "timeline",
-    "claude-code",
-    "mcp"
+    "claude-code"
   ],
-  "mcpServers": {
-    "media-io": {
-      "type": "http",
-      "url": "https://api.media.io/api/external-mcp/mcp",
-      "oauth_resource": "https://api.media.io/api/external-mcp/mcp",
-      "headers": {
-        "x-mediaio-mcp-client": "claude_code",
-        "x-mediaio-mcp-surface": "embedded-preview"
-      }
-    }
-  },
   "skills": "./skills/"
 }
