@@ -1,23 +1,28 @@
 # Media.io Agent Skills
 
-`media-plugin-main` 同时维护 `Codex` 与 `Claude Code` 两套插件清单，二者共享同一份
-`skills/` 内容，但各自使用独立的插件 manifest：
+`media-plugin-main` maintains plugin manifests for both `Codex` and `Claude Code`.
+They share the same `skills/` directory, but each host uses its own manifest:
 
-- `Codex`：`.codex-plugin/plugin.json`
-- `Claude Code`：`.claude-plugin/plugin.json`
+- `Codex`: `.codex-plugin/plugin.json`
+- `Claude Code`: `.claude-plugin/plugin.json`
 
-当前 `Claude Code` 适配复用本机已安装的 `mediaio` CLI，不依赖 `media-plugin-api` /
-`media-plugin-mcp` 的远端 MCP 配置。
+The current `Claude Code` integration reuses a locally installed `mediaio` CLI
+and does not depend on remote MCP configuration from `media-plugin-api` or
+`media-plugin-mcp`.
 
-## 安装
+## Installation
 
 ### Codex
 
-通过 `npx skills add <repository>/skills` 安装 Media.io Skills。
+Install the Media.io skills with:
+
+```bash
+npx skills add <repository>/skills
+```
 
 ### Claude Code
 
-先安装本地 CLI runtime：
+Install the local CLI runtime first:
 
 ```bash
 npm install -g @mediaio/cli
@@ -25,18 +30,24 @@ mediaio auth login
 mediaio version
 ```
 
-再按 `Claude Code` 的插件安装方式加载本仓库，并使用 `.claude-plugin/` 作为插件清单。
+Then install this repository as a `Claude Code` plugin and use
+`.claude-plugin/` as the plugin manifest directory.
 
-> `Claude Code` 插件不会静默安装第二套 binary；运行 skill 前应确保 `mediaio` 命令已在
-> 当前机器可用。
+> The `Claude Code` plugin does not silently install a second binary. Make sure
+> the `mediaio` command is already available on the current machine before
+> running the skill.
 
-## 当前 Skills
+## Current Skills
 
 ### `mediaio-generate`
 
-复用已安装的共享 `mediaio` CLI，发现并调用当前 BIN 已公开的图片、视频与 workflow 生成能力。effect 当前可发现，但 BIN 尚无 `effect get` 参数查询，不能从列表摘要猜参数。
+This skill reuses the installed shared `mediaio` CLI to discover and invoke the
+image, video, and workflow generation capabilities currently exposed by the
+binary. Effects can be discovered, but the current BIN still has no `effect get`
+parameter inspection command, so parameter schemas must not be inferred from
+list summaries.
 
-当前执行 contract：
+Current execution contract:
 
 ```text
 mediaio model|workflow|effect list
@@ -45,11 +56,16 @@ mediaio model|workflow|effect list
   → mediaio generate wait <task_id>
 ```
 
-Skill 不内置第二套 binary，不静默安装 CLI，也不调用当前 BIN 尚未实现的 `marketing-studio`、`generate workflow`、`generate cost`、`generate get`、inline `--wait` 或 discovery `--json`。
+The skill does not bundle a second binary, does not silently install the CLI,
+and does not call commands that the current BIN does not yet implement,
+including `marketing-studio`, `generate workflow`, `generate cost`,
+`generate get`, inline `--wait`, or discovery `--json`.
 
-`skills/mediaio-generate/references/marketing-*.md` 等迁入资料目前仅作为能力盘点素材保留，不代表对应命令已经可用。
+Files such as `skills/mediaio-generate/references/marketing-*.md` are retained
+only as reference material for capability inventory and do not mean the
+corresponding commands are currently available.
 
-## 验证
+## Verification
 
 ```bash
 mediaio --help
