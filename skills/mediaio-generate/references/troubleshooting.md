@@ -31,6 +31,13 @@
 - `Invalid values: <param>=<v> (allowed: ...)` — pick from allowed enum.
 - `Unknown params: <name>` — schema doesn't accept this flag. Run `mediaio model get <jst>` and check.
 
+## Host image delivery
+
+- The preferred image delivery path is: download to a verified local file, then return a standard Markdown image using that local path, for example `![preview](</tmp/generated.png>)`.
+- If the local path contains spaces, parentheses, or non-ASCII characters, wrap it in angle brackets in the Markdown target.
+- Keep the downloaded file available until after the final response is rendered; deleting it too early can break the preview.
+- If the current host does not render local-path Markdown images, state that inline local preview is unavailable and return the HTTPS result URL as the fallback.
+
 ## Job lifecycle
 
 - `Job ended with status "failed"` — server-side failure. Often prompt content / safety. Try rephrasing.

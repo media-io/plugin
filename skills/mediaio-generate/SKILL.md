@@ -1,7 +1,7 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
@@ -103,9 +103,9 @@ Workflows and effects are separate discovery views, but they are submitted throu
       ```
 
    3. Require a non-empty file, then inspect it with `file --brief --mime-type "$download_path"`. Continue only for `image/*`. Derive an accurate extension from common MIME types (`image/png` → `png`, `image/jpeg` → `jpg`, `image/webp` → `webp`, `image/gif` → `gif`) before giving the path to the host; never label an unknown image as PNG.
-   4. Read the verified local file with the host's native binary-image capability and attach it to the conversation. In Codex, use `view_image` for the local file, then append the returned image content with `image()` from `functions.exec`. A successful download alone is not delivery.
-   5. Report completion only after the local image is visibly attached/rendered, or after establishing that the host has no local image attachment capability. In the latter case, explicitly say inline preview is unavailable and provide the HTTPS URL as the fallback. Never use remote `![...](URL)` Markdown as the primary delivery path.
-   6. Remove the temporary directory only after the host has read and attached the binary image. If attachment or validation fails, do not attach the failed response; retain only enough diagnostic detail to retry and provide the HTTPS URL as fallback.
+   4. Rename the file to a matching extension inside the writable temporary directory, then deliver it back to the host as a local-path Markdown image using the standard syntax `![preview](<local-path>)`. When the local path contains spaces, parentheses, or non-ASCII characters, wrap the target in angle brackets. Prefer the local downloaded file over the remote HTTPS URL.
+   5. Report completion only after providing the local Markdown image snippet, or after establishing that local-path Markdown cannot be used in the current host. In the latter case, explicitly say inline local preview is unavailable and provide the HTTPS URL as the fallback.
+   6. Do not remove the temporary directory before the final response is sent, because the host may resolve the local Markdown path when rendering the reply. If local Markdown delivery fails, retain only enough diagnostic detail to retry and provide the HTTPS URL as fallback.
 
    For video, audio, 3D, or other non-image outputs, provide the result URL rather than attempting an image attachment.
 
