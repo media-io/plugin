@@ -43,6 +43,7 @@
 - `Job ended with status "failed"` — server-side failure. Often prompt content / safety. Try rephrasing.
 - `nsfw` / `ip_detected` — content policy. Rephrase.
 - `Timeout after 10m` — model is slow today. Bump `--timeout 30m` or retry.
+- Submission succeeds but `generate wait` reports `status=4` with a generic `reason_code` (e.g. `680100`) and a non-specific `系统错误`/system-error message — for `image2image_*`, `image2video_*`, `img2vid_*`, or `reference2video_*` job types this usually means no source image/video was uploaded and passed. Check the command actually included an uploaded `file_id` for the image/video parameter; if not, ask the user for the source file and resubmit instead of retrying the same command.
 
 ## Rate limits
 

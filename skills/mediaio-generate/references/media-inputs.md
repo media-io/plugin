@@ -18,6 +18,15 @@ mediaio workflow get <workflow_name>
 
 The detail output identifies the exact parameter names, whether each one is required or repeated, defaults, and allowed values. Use the spelling printed by the BIN; do not infer a media role from a product name.
 
+## Confirm source media before submitting
+
+Some job types functionally need a source image/video even when the live schema does not mark that parameter `required` — the server still fails the task after accepting it. Treat a job type as needing source media when either is true:
+
+- Its name matches a pattern like `image2image_*`, `image2video_*`, `img2vid_*`, `*_i2i`, `*_i2v`, or `reference2video_*`.
+- `model get`/`workflow get` lists an image/video/reference parameter in its schema, regardless of whether it is flagged required.
+
+Before uploading anything or calling `generate create` for such a job type, confirm the user has already attached a local file or given an existing `file_id`. If not, stop and ask for the source image/video — do not submit and wait for the server to reject it. A missing source for these models typically surfaces as a generic terminal failure after submission succeeds (e.g. `status=4`, a numeric `reason_code` such as `680100`, a non-specific `系统错误`/system-error message), not as a clear `missing required parameter` error.
+
 ## Upload local files
 
 The current generator does not auto-upload paths passed to generation parameters. Before upload, resolve each user-provided path and check it against the active workspace:
