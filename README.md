@@ -10,6 +10,19 @@ The current `Claude Code` integration reuses a locally installed `mediaio` CLI
 and does not depend on remote MCP configuration from `media-plugin-api` or
 `media-plugin-mcp`.
 
+## Image result delivery
+
+Generated image delivery is host-dependent:
+
+- For image results, download the HTTPS result to a local file, validate it is
+  `image/*`, and return that file using standard Markdown image syntax such as
+  `![preview](</tmp/generated.png>)`.
+- When the local path contains spaces, parentheses, or non-ASCII characters,
+  wrap the Markdown target in angle brackets.
+- Keep the downloaded local file available until the response is rendered.
+- If a host does not render local-path Markdown images, fall back to the HTTPS
+  result URL.
+
 ## Installation
 
 ### Codex
