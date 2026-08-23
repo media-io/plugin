@@ -30,10 +30,16 @@ Workflows use the same create command as models:
 mediaio generate create <workflow_name> [--param value]...
 ```
 
-The create response contains a `task_id`. Wait separately:
+The create response prints a single `task_id=<id>` line. Wait separately:
 
 ```bash
 mediaio generate wait <task_id> --timeout 20m --interval 3s
+```
+
+Retrieve the result file with the CLI instead of copying its signed URL:
+
+```bash
+mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
 To query a known task directly when both values are available:
@@ -60,5 +66,5 @@ For every documented workflow:
 1. Confirm its exact identifier in live `mediaio workflow list`.
 2. Confirm its complete schema with `mediaio workflow get <workflow_name>`.
 3. Build examples only with `mediaio generate create` followed by `mediaio generate wait`.
-4. Keep result lookup on `mediaio generate query <workflow_name> <task_id>`.
+4. Keep result lookup on `mediaio generate query <workflow_name> <task_id>` and result retrieval on `mediaio generate download <task_id>`.
 5. Document cost only from the credit configuration returned by the live BIN.

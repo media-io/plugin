@@ -67,7 +67,13 @@ mediaio model|workflow|effect list
   → mediaio model|workflow get <job_type>
   → mediaio generate create <job_type> [--param value]...
   → mediaio generate wait <task_id>
+  → mediaio generate download <task_id> --output-dir <dir>
 ```
+
+`generate` 子命令默认输出 brief：`create` 只打印 `task_id=<id>`，`wait`/`query`
+打印状态行加每行一个已反转义的裸结果 URL，`list` 每个任务一行。需要原始 API
+载荷时显式加 `--output full`。结果文件应通过 `generate download` 获取，签名 URL
+不离开 CLI，避免被转写破坏。
 
 The skill does not bundle a second binary, does not silently install the CLI,
 and does not call commands that the current BIN does not yet implement,

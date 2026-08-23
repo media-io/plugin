@@ -45,14 +45,21 @@ mediaio upload create ./reference.wav
 
 Each call prints a `file_id`. Pass that ID through the exact parameter exposed by `model get` or `workflow get`.
 
-## Submit and wait
+## Submit, wait, and retrieve
 
 ```bash
 mediaio generate create <job_type> [--param value]...
 mediaio generate wait <task_id> --timeout 20m --interval 3s
+mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
-Run these as two steps. Extract `task_id` from the create response before calling `generate wait`.
+Run these as separate steps. The create command prints a single `task_id=<id>`
+line; read the ID from there before calling `generate wait`.
+
+Use `generate download` to obtain the result file. It prints one local path per
+line and keeps the signed storage URL inside the CLI, so there is no chance of
+corrupting it by retyping. `generate wait <task_id> --download "$tmp_dir"`
+combines the last two steps.
 
 ## Verified GPT Image 2 image-to-image flow
 
@@ -66,10 +73,11 @@ mediaio generate create image2image_gpt_image_2 \
   --images <file_id>
 ```
 
-Wait with the returned task ID:
+Wait with the returned task ID, then download the result:
 
 ```bash
 mediaio generate wait <task_id> --timeout 20m --interval 3s
+mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
 ## Repeated inputs
@@ -90,3 +98,4 @@ mediaio generate create image2image_gpt_image_2 \
 - `missing required parameter` — provide the exact required value shown by the schema.
 - Media-count or media-role errors — use only the role and repetition limits exposed by the current schema.
 - A local path rejected during create — upload it first and retry with the returned `file_id`.
+- A storage credential error (`InvalidAccessKeyId`, `SignatureDoesNotMatch`) while fetching a result — the URL was altered or expired. Never repair it by hand; re-run `mediaio generate download <task_id>`.
