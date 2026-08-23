@@ -1,7 +1,7 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.2.3"
+  version: "0.2.4"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
@@ -48,7 +48,7 @@ Before any generation command:
 A signed Media.io result URL carries a high-entropy storage credential. Rewriting one character breaks it, and the storage service answers `InvalidAccessKeyId` or `SignatureDoesNotMatch` rather than pointing at the typo. Therefore:
 
 1. **Never retype, re-key, summarise, reformat, or hand-edit a result URL.** Do not strip or add query parameters such as `x-oss-process`, and do not "clean up" the URL for readability.
-2. **Prefer `mediaio generate download`.** It resolves the task, fetches the file itself, and prints only the local path, so no signed URL ever passes through your output at all.
+2. **Prefer `mediaio generate download`.** It resolves the task and fetches the file itself, so the download never depends on you reproducing a signed URL. It echoes the source URL on a `# url[N] <url>` comment line for reference; copy that line verbatim if the user asks for the link.
 3. If a raw URL is genuinely required, capture it with the shell instead of copying it. The default brief output prints each result URL flush-left on its own line, so it can be captured verbatim:
 
    ```bash
@@ -59,21 +59,25 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 
 ## Output modes
 
-Every `generate` subcommand accepts `--output brief|full` (`--full` is shorthand for `--output full`). `brief` is the default and is what you should use:
+Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shorthand for `--output full`). `brief` is the default and is what you should use:
 
 | Command | Default brief output |
 | --- | --- |
-| `generate create` | a single `task_id=<id>` line |
-| `generate wait` / `generate query` (success) | `task_id=`, `status=`, `status_code=`, `algorithm=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
+| `generate create` | `uni_fun_code=<job_type>` and `task_id=<id>` lines |
+| `generate wait` / `generate query` (success) | `task_id=`, `uni_fun_code=`, `algorithm_name=`, `module=`, `status=`, `status_code=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
 | `generate wait` / `generate query` (failure) | `status=`, `status_code=`, `reason_code=`, `reason_label=`, `reason=` lines |
-| `generate list` | one tab-separated row per task (`task_id`, `status`, `algorithm`, `begin`, `end`), no URLs |
-| `generate download` | one local file path per line |
+| `generate list` | one tab-separated row per task (`task_id`, `status`, `uni_fun_code`, `algorithm_name`, `module`, `begin`, `end`), no URLs |
+| `generate download` | one local file path per non-comment line, preceded by a `# uni_fun_code <code>` line and per-file `# file[N] ...` metadata and `# url[N] <url>` lines |
 
-Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload, whose escaped JSON is exactly what must not be transcribed by hand.
+`uni_fun_code` is the only field that identifies which model produced a task. The raw `algorithm` field is `combo_alg` for every workflow task, so it is omitted from brief output unless it holds a real value (`tts`, `agent2mv`, ...). Likewise `generate list --algorithm` filters by algorithm channel, not by model.
+
+Use `--output json` when a script needs to parse the result instead of a human reading it. It prints exactly one JSON document on stdout, always starting with `"schema_version": 1` and `"command": "generate.<sub>"`; failures print `"error": {"kind", "message"}` in the same shape while the exit code and the stderr message stay unchanged. Progress lines from `generate wait` always go to stderr, so `--output json` output stays pipeable into `jq`.
+
+Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload (wrapped in a valid `{"code","msg","data"}` JSON document), whose escaped JSON is exactly what must not be transcribed by hand.
 
 ## Discovery guardrail
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands do not accept `--json`.
+When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands do not accept `--json`. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
 
@@ -131,16 +135,16 @@ Workflows and effects are separate discovery views, but they are submitted throu
 6. **Deliver.** Retrieve the result file with the CLI, never by re-entering a URL:
 
    1. Create a writable temporary directory with `mktemp -d`.
-   2. Download the task's results into it. The signed URL stays inside the CLI:
+   2. Download the task's results into it:
 
       ```bash
       mediaio generate download <task_id> --output-dir "$tmp_dir"
       ```
 
-      The command prints one local path per line. Use `--index N` to fetch a single result, and `--variant preview` only when the user explicitly wants the compressed preview instead of the full-resolution file. `--variant original` is the default and is what you should normally deliver.
+      Every non-comment line is a local path; each file is preceded by a `# file[N] ...` metadata line and a `# url[N] <url>` line carrying the source URL. Use `grep -v '^#'` to keep only the paths. Use `--index N` to fetch a single result, and `--variant preview` only when the user explicitly wants the compressed preview instead of the full-resolution file. `--variant original` is the default and is what you should normally deliver.
    3. Require a non-empty file, then inspect it with `file --brief --mime-type "$download_path"`. Continue with the image path only for `image/*`. If the CLI-provided filename already carries an accurate extension, keep it; otherwise derive one from common MIME types (`image/png` → `png`, `image/jpeg` → `jpg`, `image/webp` → `webp`, `image/gif` → `gif`). Never label an unknown image as PNG.
    4. Deliver the file back to the host as a local-path Markdown image using the standard syntax `![preview](<local-path>)`. When the local path contains spaces, parentheses, or non-ASCII characters, wrap the target in angle brackets. Prefer the local downloaded file over the remote HTTPS URL.
-   5. Report completion only after providing the local Markdown image snippet, or after establishing that local-path Markdown cannot be used in the current host. In the latter case, explicitly say inline local preview is unavailable, and obtain the URL with the shell capture shown in the result URL guardrail rather than transcribing it.
+   5. Report completion only after providing the local Markdown image snippet, or after establishing that local-path Markdown cannot be used in the current host. In the latter case, explicitly say inline local preview is unavailable, and reuse the `# url[N]` line printed by `generate download` (or the shell capture shown in the result URL guardrail) rather than transcribing the URL.
    6. Do not remove the temporary directory before the final response is sent, because the host may resolve the local Markdown path when rendering the reply.
    7. `curl` is a fallback only when `generate download` is unavailable in the installed build. In that case still capture the URL into a shell variable and pass `"$url"` unmodified:
 
@@ -183,7 +187,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 ## Errors
 
 - `flag provided but not defined: -wait` → remove `--wait`, submit, then call `mediaio generate wait <task_id>`.
-- `flag provided but not defined: -json` → remove `--json`. Discovery commands have no JSON mode; `generate` subcommands offer `--output brief|full` instead.
+- `flag provided but not defined: -json` → remove `--json`. Discovery commands have no JSON mode; `generate` subcommands offer `--output brief|json|full` instead.
 - `flag provided but not defined: -output` or `-download` → the installed build predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture any URL with a shell variable instead of transcribing it.
 - `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.

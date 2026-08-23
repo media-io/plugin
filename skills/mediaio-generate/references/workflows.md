@@ -30,7 +30,7 @@ Workflows use the same create command as models:
 mediaio generate create <workflow_name> [--param value]...
 ```
 
-The create response prints a single `task_id=<id>` line. Wait separately:
+The create response prints a `task_id=<id>` line. Wait separately:
 
 ```bash
 mediaio generate wait <task_id> --timeout 20m --interval 3s

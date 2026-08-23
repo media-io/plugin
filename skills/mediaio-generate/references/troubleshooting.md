@@ -36,24 +36,25 @@
 - The preferred image delivery path is: `mediaio generate download <task_id> --output-dir "$tmp_dir"`, then return a standard Markdown image using the printed local path, for example `![preview](</tmp/generated.png>)`.
 - If the local path contains spaces, parentheses, or non-ASCII characters, wrap it in angle brackets in the Markdown target.
 - Keep the downloaded file available until after the final response is rendered; deleting it too early can break the preview.
-- If the current host does not render local-path Markdown images, state that inline local preview is unavailable and return the HTTPS result URL. Obtain that URL with a shell capture (`url=$(mediaio generate query ... | grep '^http' | head -1)`); never retype it.
+- If the current host does not render local-path Markdown images, state that inline local preview is unavailable and return the HTTPS result URL. Take it from the `# url[N] <url>` line printed by `generate download`, or capture it with the shell (`url=$(mediaio generate query ... | grep '^http' | head -1)`); never retype it.
 
 ## Result URLs and downloads
 
 Signed Media.io result URLs are hosted on the shared drive storage and carry an Alibaba OSS v4 signature: `x-oss-credential=<AccessKeyId>/<date>/<region>/oss/aliyun_v4_request`, `x-oss-date`, `x-oss-expires`, `x-oss-signature` (64 hex characters) and `x-oss-signature-version=OSS4-HMAC-SHA256`. The whole URL is typically 430-510 characters of opaque high-entropy text.
 
-- **A single wrong character breaks the URL.** Reproducing such a URL from memory or by retyping is unreliable; treat it as copy-only data. Use `mediaio generate download` so the URL is never handled outside the CLI.
+- **A single wrong character breaks the URL.** Reproducing such a URL from memory or by retyping is unreliable; treat it as copy-only data. Use `mediaio generate download` so the fetch itself never depends on transcribing the URL.
 - `InvalidAccessKeyId` (OSS error code `0002-00000902`) — the `x-oss-credential` AccessKeyId was altered. This is not an account problem and re-authenticating will not help. Re-run `mediaio generate download <task_id>`.
 - `SignatureDoesNotMatch` — either `x-oss-signature` was altered, or a query parameter such as `x-oss-process` was added, removed, or reordered after signing. Never edit a signed URL to change image processing; request the variant you want with `--variant original|preview`.
 - `AccessDenied` / `Request has expired` — `x-oss-expires` elapsed. Re-run `generate query` or `generate download` to obtain a fresh signature.
 - A downloaded image that is much smaller than the reported `width`x`height` means the compressed preview was fetched instead of the original. Use `--variant original` (the default) and check the `# file[N] ...` metadata comment for the expected dimensions.
 - `... is not downloadable yet: status=<label> (<code>)` — the task has not succeeded. Run `generate wait` first, then read `reason_code`/`reason_label`.
 - `... already exists; pass --overwrite to replace it` — pick a fresh directory (a new `mktemp -d`) or pass `--overwrite` deliberately.
-- If host output truncation is likely (long transcripts, low `max_output_tokens`), avoid printing result URLs at all: `generate download` prints only short local paths, and `generate wait --download DIR` does the same in one step.
+- If host output truncation is likely (long transcripts, low `max_output_tokens`), keep the URL out of the transcript: run `generate download` (or `generate wait --download DIR`) and pipe it through `grep -v '^#'` so only the short local paths remain.
+- The same result file can appear both in the top-level `list` and in `result.data.after`. The CLI merges them by object path, so a single generated file is reported and downloaded once. Seeing the same path twice means an outdated build.
 
 ## Output modes
 
-- `generate` subcommands accept `--output brief|full`; `brief` is the default. Discovery commands (`model list`, `workflow get`, ...) still have no JSON mode.
+- `generate` subcommands accept `--output brief|json|full`; `brief` is the default. `json` emits one normalized document with a stable `schema_version`. Discovery commands (`model list`, `workflow get`, ...) still have no JSON mode.
 - `flag provided but not defined: -output` or `-download` means the installed BIN predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture URLs with a shell variable rather than transcribing them.
 - Use `--output full` only for diagnostics. Its raw payload contains escaped JSON (`\u0026` for `&`, `\"` for quotes), and decoding that by hand is exactly how result URLs get corrupted.
 
