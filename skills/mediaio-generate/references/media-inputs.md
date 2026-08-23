@@ -56,10 +56,11 @@ mediaio generate download <task_id> --output-dir "$tmp_dir"
 Run these as separate steps. The create command prints a single `task_id=<id>`
 line; read the ID from there before calling `generate wait`.
 
-Use `generate download` to obtain the result file. It prints one local path per
-line and keeps the signed storage URL inside the CLI, so there is no chance of
-corrupting it by retyping. `generate wait <task_id> --download "$tmp_dir"`
-combines the last two steps.
+Use `generate download` to obtain the result file. Its non-comment lines are
+local paths, and each file is preceded by a `# file[N] ...` metadata line and a
+`# url[N] <url>` line, so the URL is available for display without ever being
+retyped. `generate wait <task_id> --download "$tmp_dir"` combines the last two
+steps.
 
 ## Verified GPT Image 2 image-to-image flow
 
