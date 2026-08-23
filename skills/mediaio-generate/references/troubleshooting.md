@@ -53,6 +53,12 @@
 
 If `Failed to decode response. Body: <html>...captcha-delivery...` appears, the server's anti-bot fired. Wait 30s and retry. If persistent, ping the team.
 
-## Cost
+## Cost and credit confirmation
 
-The current BIN has no standalone pre-submit cost command. `mediaio workflow get <workflow_name>` includes raw workflow credit configuration when the registry provides it. If model or workflow detail does not provide enough data for an exact estimate, report that the exact cost is currently unavailable.
+`mediaio generate estimate <job_type> [--param value]... --json` returns the pre-submit credit cost without spending anything. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
+
+- `credit confirmation required: ... rerun with --yes only after they approve` — the CLI refused to spend credits without the user seeing the cost. Show the estimate printed above the error to the user, wait for an explicit approval, then resubmit with `--yes`. Never satisfy this error by attaching `--yes`, `--skip-estimate` or an auto-confirm switch on your own initiative.
+- `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` — the parameters changed after the approval. Show Y to the user and ask again.
+- `--skip-estimate is only allowed on an interactive terminal` — drop the flag and run the estimate.
+- estimate returns `known=false` — the cost depends on data only the server can resolve. Report that the exact cost is currently unavailable instead of inventing it; submit with `--yes` only after the user approves an unknown cost.
+- the user says they do not want to approve every job — match the scope to what they said: `--yes` for one call, `export MEDIAIO_AUTO_CONFIRM=1` for this session only, `mediaio generate auto-confirm on` for every session. Explain the consequence before widening the scope, and never widen it on your own initiative. `mediaio generate auto-confirm status` shows what is in effect.

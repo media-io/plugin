@@ -44,7 +44,11 @@ mediaio generate query <workflow_name> <task_id>
 
 ## Cost information
 
-The current BIN has no standalone pre-submit cost command. Inspect the raw credit configuration printed by `mediaio workflow get <workflow_name>`. If that data is insufficient for an exact estimate, tell the user that the exact cost is currently unavailable instead of inventing it.
+Run `mediaio generate estimate <workflow_name> [--param value]... --json` with the exact parameters you are about to submit. It spends nothing and returns the credit cost, the billed fields and the account balance. Show that number to the user and wait for their approval before `generate create`, then submit with `--yes`.
+
+When the estimate returns `known=false`, the cost cannot be resolved locally (for example a rule that depends on server-side media metadata). Tell the user the exact cost is unavailable instead of inventing it, and submit only after they approve.
+
+`mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 
 ## Historical inventory
 
@@ -59,6 +63,6 @@ For every documented workflow:
 
 1. Confirm its exact identifier in live `mediaio workflow list`.
 2. Confirm its complete schema with `mediaio workflow get <workflow_name>`.
-3. Build examples only with `mediaio generate create` followed by `mediaio generate wait`.
+3. Build examples only with `mediaio generate estimate`, then `mediaio generate create --yes`, then `mediaio generate wait`.
 4. Keep result lookup on `mediaio generate query <workflow_name> <task_id>`.
-5. Document cost only from the credit configuration returned by the live BIN.
+5. Document cost only from `mediaio generate estimate` output returned by the live BIN.
