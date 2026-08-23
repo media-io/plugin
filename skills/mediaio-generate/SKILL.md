@@ -59,21 +59,25 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 
 ## Output modes
 
-Every `generate` subcommand accepts `--output brief|full` (`--full` is shorthand for `--output full`). `brief` is the default and is what you should use:
+Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shorthand for `--output full`). `brief` is the default and is what you should use:
 
 | Command | Default brief output |
 | --- | --- |
-| `generate create` | a single `task_id=<id>` line |
-| `generate wait` / `generate query` (success) | `task_id=`, `status=`, `status_code=`, `algorithm=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
+| `generate create` | `uni_fun_code=<job_type>` and `task_id=<id>` lines |
+| `generate wait` / `generate query` (success) | `task_id=`, `uni_fun_code=`, `algorithm_name=`, `module=`, `status=`, `status_code=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
 | `generate wait` / `generate query` (failure) | `status=`, `status_code=`, `reason_code=`, `reason_label=`, `reason=` lines |
-| `generate list` | one tab-separated row per task (`task_id`, `status`, `algorithm`, `begin`, `end`), no URLs |
-| `generate download` | one local file path per non-comment line, each preceded by `# file[N] ...` metadata and a `# url[N] <url>` line |
+| `generate list` | one tab-separated row per task (`task_id`, `status`, `uni_fun_code`, `algorithm_name`, `module`, `begin`, `end`), no URLs |
+| `generate download` | one local file path per non-comment line, preceded by a `# uni_fun_code <code>` line and per-file `# file[N] ...` metadata and `# url[N] <url>` lines |
 
-Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload, whose escaped JSON is exactly what must not be transcribed by hand.
+`uni_fun_code` is the only field that identifies which model produced a task. The raw `algorithm` field is `combo_alg` for every workflow task, so it is omitted from brief output unless it holds a real value (`tts`, `agent2mv`, ...). Likewise `generate list --algorithm` filters by algorithm channel, not by model.
+
+Use `--output json` when a script needs to parse the result instead of a human reading it. It prints exactly one JSON document on stdout, always starting with `"schema_version": 1` and `"command": "generate.<sub>"`; failures print `"error": {"kind", "message"}` in the same shape while the exit code and the stderr message stay unchanged. Progress lines from `generate wait` always go to stderr, so `--output json` output stays pipeable into `jq`.
+
+Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload (wrapped in a valid `{"code","msg","data"}` JSON document), whose escaped JSON is exactly what must not be transcribed by hand.
 
 ## Discovery guardrail
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands do not accept `--json`.
+When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands do not accept `--json`. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
 
@@ -183,7 +187,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 ## Errors
 
 - `flag provided but not defined: -wait` → remove `--wait`, submit, then call `mediaio generate wait <task_id>`.
-- `flag provided but not defined: -json` → remove `--json`. Discovery commands have no JSON mode; `generate` subcommands offer `--output brief|full` instead.
+- `flag provided but not defined: -json` → remove `--json`. Discovery commands have no JSON mode; `generate` subcommands offer `--output brief|json|full` instead.
 - `flag provided but not defined: -output` or `-download` → the installed build predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture any URL with a shell variable instead of transcribing it.
 - `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.

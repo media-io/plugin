@@ -54,7 +54,7 @@ Signed Media.io result URLs are hosted on the shared drive storage and carry an 
 
 ## Output modes
 
-- `generate` subcommands accept `--output brief|full`; `brief` is the default. Discovery commands (`model list`, `workflow get`, ...) still have no JSON mode.
+- `generate` subcommands accept `--output brief|json|full`; `brief` is the default. `json` emits one normalized document with a stable `schema_version`. Discovery commands (`model list`, `workflow get`, ...) still have no JSON mode.
 - `flag provided but not defined: -output` or `-download` means the installed BIN predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture URLs with a shell variable rather than transcribing them.
 - Use `--output full` only for diagnostics. Its raw payload contains escaped JSON (`\u0026` for `&`, `\"` for quotes), and decoding that by hand is exactly how result URLs get corrupted.
 

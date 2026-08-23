@@ -53,7 +53,7 @@ mediaio generate wait <task_id> --timeout 20m --interval 3s
 mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
-Run these as separate steps. The create command prints a single `task_id=<id>`
+Run these as separate steps. The create command prints a `task_id=<id>`
 line; read the ID from there before calling `generate wait`.
 
 Use `generate download` to obtain the result file. Its non-comment lines are
