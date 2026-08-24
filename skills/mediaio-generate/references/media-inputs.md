@@ -25,7 +25,7 @@ Some job types functionally need a source image/video even when the live schema 
 - Its name matches a pattern like `image2image_*`, `image2video_*`, `img2vid_*`, `*_i2i`, `*_i2v`, or `reference2video_*`.
 - `model get`/`workflow get` lists an image/video/reference parameter in its schema, regardless of whether it is flagged required.
 
-Before uploading anything or calling `generate create` for such a job type, confirm the user has already attached a local file or given an existing `file_id`. If not, stop and ask for the source image/video — do not submit and wait for the server to reject it. A missing source for these models typically surfaces as a generic terminal failure after submission succeeds (e.g. `status=4`, a numeric `reason_code` such as `680100`, a non-specific `系统错误`/system-error message), not as a clear `missing required parameter` error.
+Before uploading anything or calling `generate create` for such a job type, confirm the user has already attached a local file or given an existing `file_id`. If not, stop and ask for the source image/video — do not submit and wait for the server to reject it. A missing source for these models typically surfaces as a generic terminal failure after submission succeeds (e.g. `status=4`, a numeric `reason_code` such as `680100`, a non-specific system-error message), not as a clear `missing required parameter` error.
 
 ## Upload local files
 
@@ -48,12 +48,14 @@ Each call prints a `file_id`. Pass that ID through the exact parameter exposed b
 ## Submit, wait, and retrieve
 
 ```bash
-mediaio generate create <job_type> [--param value]...
+mediaio generate estimate <job_type> [--param value]...
+mediaio generate create <job_type> [--param value]... --yes
 mediaio generate wait <task_id> --timeout 20m --interval 3s
 mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
-Run these as separate steps. The create command prints a `task_id=<id>`
+Run these as separate steps, and submit only after the user approved the
+estimate. The create command prints a `task_id=<id>`
 line; read the ID from there before calling `generate wait`.
 
 Use `generate download` to obtain the result file. Its non-comment lines are
@@ -71,7 +73,8 @@ mediaio model get image2image_gpt_image_2
 mediaio upload create ./reference.png
 mediaio generate create image2image_gpt_image_2 \
   --prompt "preserve the subject and change the setting to a warm studio" \
-  --images <file_id>
+  --images <file_id> \
+  --yes
 ```
 
 Wait with the returned task ID, then download the result:
@@ -89,7 +92,8 @@ Repeat a parameter only when the live schema marks it as repeated. For example, 
 mediaio generate create image2image_gpt_image_2 \
   --prompt "combine these references into one coherent product scene" \
   --images <first_file_id> \
-  --images <second_file_id>
+  --images <second_file_id> \
+  --yes
 ```
 
 ## Error recovery

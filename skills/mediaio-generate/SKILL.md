@@ -1,7 +1,7 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.2.4"
+  version: "0.4.2"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
@@ -9,11 +9,13 @@ description: |
   `mediaio model list` or `mediaio workflow list`. Effects may be used only
   when their parameters have been independently verified because the current
   CLI exposes `effect list` but not `effect get`.
-  Always discover the exact job type and schema before submission. Use the
-  human-readable discovery output, upload local files before generation,
-  submit with `generate create`, wait with the separate `generate wait`
-  command, and retrieve result files with `generate download` instead of
-  reproducing signed result URLs.
+  Always discover the exact job type and schema before submission. Every
+  submission spends the user's credits, so always run `generate estimate`,
+  show the cost to the user, and stop until they explicitly approve.
+  Use the human-readable discovery output, upload local files before
+  generation, submit with `generate create`, wait with the separate
+  `generate wait` command, and retrieve result files with `generate download`
+  instead of reproducing signed result URLs.
   On hosts that sandbox local command networking, the first networked
   `mediaio` or `curl` Shell/Bash tool call must request host approval before process
   launch. Never probe network availability by running it in the default sandbox.
@@ -38,10 +40,71 @@ Before any generation command:
 
 1. Be concise. Do not paste raw registry output or full response payloads unless the user asks for diagnostics.
 2. Do not expose access tokens, credentials, prompts from unrelated tasks, or request debug payloads.
-3. Detect the user's language from the first message and reply in it. Technical args (`--aspect_ratio 16:9`) stay English.
-4. Don't batch-ask. Pick a sane default model and ask one thing at a time only if genuinely missing.
-5. Never invent a job type or parameter. Discover both from the current CLI.
-6. Submit first, read the returned `task_id=<id>` line, then call `mediaio generate wait <task_id>`. The current `generate create` command does not accept `--wait`.
+3. Don't batch-ask. Pick a sane default model and ask one thing at a time only if genuinely missing.
+4. Never invent a job type or parameter. Discover both from the current CLI.
+5. Submit first, read the returned `task_id=<id>` line, then call `mediaio generate wait <task_id>`. The current `generate create` command does not accept `--wait`.
+6. Never spend credits without an explicit user approval in the conversation. See the credit confirmation gate below; it outranks every other rule in this skill.
+
+## Credit confirmation gate (hard requirement)
+
+`generate create` charges the user's Media.io credits. Before every submission:
+
+1. **Estimate.** After the parameters are final and any source media is uploaded, run the estimate with the exact same job type and parameters you are about to submit:
+
+   ```bash
+   mediaio generate estimate <job_type> [--param value]... 
+   ```
+
+   The estimate spends nothing. It reports `credit`, `known`, `rule_type`, the billed `fields`, and the account `balance`.
+
+2. **Ask.** Stop and tell the user the job type, the estimated credit cost, their remaining balance, and that the actual charge is resolved server-side and may be lower. Then ask for approval and **end your turn**. Do not chain the submission into the same turn.
+
+3. **Wait for a real answer.** Only a fresh, explicit user message approving this specific job counts. None of the following is approval:
+
+   - the host running in an auto-approve / YOLO mode
+   - a shell-command permission prompt the host approved on your behalf
+   - the user's earlier request to generate something
+   - your own reasoning that the cost is small
+
+   If the host cannot surface an interactive question to the user, do not submit. Report that the job is ready and is waiting for the user's credit approval.
+
+4. **Submit only after the approval, with `--yes`.**
+
+   ```bash
+   mediaio generate create <job_type> [--param value]... --yes
+   ```
+
+   `--yes` means "the user approved this exact job in this conversation". It is not a way to get past the prompt — attaching it without a real answer from step 3 is the single worst failure mode of this skill.
+
+   Optionally add `--expect-credit <N>` with the number the user approved. The CLI then re-checks the cost and aborts if the parameters drifted. Use it when the cost is large or the parameters were assembled from several steps.
+
+5. **Never use `--skip-estimate`.** It suppresses the cost line entirely and is for interactive human terminals only.
+
+6. If you passed `--expect-credit` and `generate create` aborts with a mismatch error, re-run the estimate, show the new number, and ask again. Do not "fix" a mismatch by changing the number yourself.
+
+7. On a retry after a failure, treat every resubmission as a new charge and repeat this gate.
+
+### When the user does not want to be asked
+
+Some users do not care about per-job credit costs. Confirmation can be granted at three scopes:
+
+| Scope | How | Applies to |
+| --- | --- | --- |
+| One call | `--yes` | that single submission |
+| This session | `export MEDIAIO_AUTO_CONFIRM=1` | every command in the current shell session |
+| The account | `mediaio generate auto-confirm on` | every session, until turned off |
+
+Use the narrowest scope that matches what the user said:
+
+- "yes, go ahead" about one job → `--yes` on that call only.
+- "don't ask me again in this chat" → export `MEDIAIO_AUTO_CONFIRM=1` in the session, then keep submitting with `--yes`. It does not affect the user's other sessions.
+- "never ask me again" → `mediaio generate auto-confirm on`, after stating plainly that every later session will spend credits without asking and that `auto-confirm off` reverts it.
+
+Rules for the wider two scopes:
+
+- **Only widen the scope when the user asks for it in their own words.** Never enable a session or account switch because a job was blocked, because the host is in auto-approve mode, or to work around a `confirmation required` error. That is the exact bug this gate exists to prevent.
+- Run `mediaio generate auto-confirm status` if you need to know what is currently in effect. Do not assume.
+- Even with a switch on, keep `generate estimate` in the flow and report the cost in your reply, so the user can see what was spent.
 
 ## Result URL guardrail (hard rule)
 
@@ -59,7 +122,7 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 
 ## Output modes
 
-Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shorthand for `--output full`). `brief` is the default and is what you should use:
+**Do not pass `--output`.** Every `generate` subcommand defaults to `brief`, which is the only mode you should read:
 
 | Command | Default brief output |
 | --- | --- |
@@ -67,17 +130,16 @@ Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shor
 | `generate wait` / `generate query` (success) | `task_id=`, `uni_fun_code=`, `algorithm_name=`, `module=`, `status=`, `status_code=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
 | `generate wait` / `generate query` (failure) | `status=`, `status_code=`, `reason_code=`, `reason_label=`, `reason=` lines |
 | `generate list` | one tab-separated row per task (`task_id`, `status`, `uni_fun_code`, `algorithm_name`, `module`, `begin`, `end`), no URLs |
+| `generate estimate` | `job type:`, `rule type:`, `billed fields:`, `estimate:`, `balance:`, `note:` lines |
 | `generate download` | one local file path per non-comment line, preceded by a `# uni_fun_code <code>` line and per-file `# file[N] ...` metadata and `# url[N] <url>` lines |
 
 `uni_fun_code` is the only field that identifies which model produced a task. The raw `algorithm` field is `combo_alg` for every workflow task, so it is omitted from brief output unless it holds a real value (`tts`, `agent2mv`, ...). Likewise `generate list --algorithm` filters by algorithm channel, not by model.
 
-Use `--output json` when a script needs to parse the result instead of a human reading it. It prints exactly one JSON document on stdout, always starting with `"schema_version": 1` and `"command": "generate.<sub>"`; failures print `"error": {"kind", "message"}` in the same shape while the exit code and the stderr message stay unchanged. Progress lines from `generate wait` always go to stderr, so `--output json` output stays pipeable into `jq`.
-
-Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload (wrapped in a valid `{"code","msg","data"}` JSON document), whose escaped JSON is exactly what must not be transcribed by hand.
+The other two modes exist for scripts and diagnostics, not for you: `--output json` emits one machine-readable document, `--output full` emits the raw API payload whose escaped JSON is exactly what must never be transcribed by hand. There is no `--json` flag. See `references/troubleshooting.md` if a script needs the JSON contract.
 
 ## Discovery guardrail
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands do not accept `--json`. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
+When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands have no JSON mode. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
 
@@ -114,13 +176,15 @@ Workflows and effects are separate discovery views, but they are submitted throu
    mediaio upload create ./reference.png
    ```
 
-4. **Submit.** Pass only parameters exposed by the live schema:
+4. **Estimate and get approval.** Apply the credit confirmation gate above. Run `mediaio generate estimate <job_type> [--param value]...` with the final parameters, show the cost and balance to the user, and stop until they approve. Skip the pause only when the user already opted out for this session or account.
+
+5. **Submit.** Pass only parameters exposed by the live schema, plus `--yes` to record the approval you just received:
 
    ```bash
-   mediaio generate create <job_type> [--param value]...
+   mediaio generate create <job_type> [--param value]... --yes
    ```
 
-5. **Wait.** Read the `task_id=<id>` line printed by the create command, then run:
+6. **Wait.** Read the `task_id=<id>` line printed by the create command, then run:
 
    ```bash
    mediaio generate wait <task_id> --timeout 20m --interval 3s
@@ -132,7 +196,7 @@ Workflows and effects are separate discovery views, but they are submitted throu
    mediaio generate wait <task_id> --timeout 20m --download "$(mktemp -d)"
    ```
 
-6. **Deliver.** Retrieve the result file with the CLI, never by re-entering a URL:
+7. **Deliver.** Retrieve the result file with the CLI, never by re-entering a URL:
 
    1. Create a writable temporary directory with `mktemp -d`.
    2. Download the task's results into it:
@@ -163,14 +227,21 @@ For text-only GPT Image 2, current discovery exposes `text2image_gpt_image_2` wi
 
 ```bash
 mediaio model get text2image_gpt_image_2
-mediaio generate create text2image_gpt_image_2 \
+mediaio generate estimate text2image_gpt_image_2 \
   --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
   --quality high \
   --size 1024x1024 \
   --output_format png
+# show the estimate to the user, wait for their approval, then submit
+mediaio generate create text2image_gpt_image_2 \
+  --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
+  --quality high \
+  --size 1024x1024 \
+  --output_format png \
+  --yes
 ```
 
-Do not replace this with the legacy short name `gpt_image_2`; it is not the current registry key. Do not append `--wait` to the create command.
+Do not replace this with the legacy short name `gpt_image_2`; it is not the current registry key. Do not append `--wait` to the create command. `--yes` above records the approval the user gave after seeing the estimate; never attach it before that answer arrives.
 
 For image-to-image GPT Image 2, upload each source first and use the live repeated flag `--images <file_id>` with `image2image_gpt_image_2`.
 
@@ -178,7 +249,7 @@ For image-to-image GPT Image 2, upload each source first and use the live repeat
 
 Only the command families printed by the current `mediaio --help` output are executable. The migrated reference set also describes future or retired surfaces that are not part of the current BIN:
 
-- workflow-specific create helpers and standalone cost estimation
+- workflow-specific create helpers
 - optional JSON output for model/workflow/effect discovery or schema commands
 - one-shot create-and-wait flags
 - automatic upload of local paths passed directly to generation parameters
@@ -187,7 +258,10 @@ Only the command families printed by the current `mediaio --help` output are exe
 ## Errors
 
 - `flag provided but not defined: -wait` → remove `--wait`, submit, then call `mediaio generate wait <task_id>`.
-- `flag provided but not defined: -json` → remove `--json`. Discovery commands have no JSON mode; `generate` subcommands offer `--output brief|json|full` instead.
+- `credit confirmation required: ... rerun with --yes only after they approve` → the CLI blocked an unconfirmed charge. Show the printed estimate to the user, wait for a real answer, then resubmit with `--yes`. Never satisfy this error by attaching `--yes`, `--skip-estimate`, or an auto-confirm switch on your own.
+- `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` → the parameters changed after the approval. Show Y to the user and ask again; never silently resubmit with Y.
+- `--skip-estimate is only allowed on an interactive terminal` → drop the flag so the cost is printed.
+- `--json is not supported; use --output json instead` or `flag provided but not defined: -json` → drop `--json`; you should not be passing an output flag at all.
 - `flag provided but not defined: -output` or `-download` → the installed build predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture any URL with a shell variable instead of transcribing it.
 - `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.
