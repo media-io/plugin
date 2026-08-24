@@ -24,10 +24,11 @@ Save each returned `file_id`, then map it to the exact parameter name shown by `
 
 ## Submit
 
-Workflows use the same create command as models:
+Workflows use the same create command as models. Estimate the cost and get the user's approval first, then record it with `--yes`:
 
 ```bash
-mediaio generate create <workflow_name> [--param value]...
+mediaio generate estimate <workflow_name> [--param value]... --json
+mediaio generate create <workflow_name> [--param value]... --yes
 ```
 
 The create response prints a `task_id=<id>` line. Wait separately:

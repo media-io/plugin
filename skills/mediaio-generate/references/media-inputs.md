@@ -48,12 +48,14 @@ Each call prints a `file_id`. Pass that ID through the exact parameter exposed b
 ## Submit, wait, and retrieve
 
 ```bash
-mediaio generate create <job_type> [--param value]...
+mediaio generate estimate <job_type> [--param value]... --json
+mediaio generate create <job_type> [--param value]... --yes
 mediaio generate wait <task_id> --timeout 20m --interval 3s
 mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
-Run these as separate steps. The create command prints a `task_id=<id>`
+Run these as separate steps, and submit only after the user approved the
+estimate. The create command prints a `task_id=<id>`
 line; read the ID from there before calling `generate wait`.
 
 Use `generate download` to obtain the result file. Its non-comment lines are
@@ -71,7 +73,8 @@ mediaio model get image2image_gpt_image_2
 mediaio upload create ./reference.png
 mediaio generate create image2image_gpt_image_2 \
   --prompt "preserve the subject and change the setting to a warm studio" \
-  --images <file_id>
+  --images <file_id> \
+  --yes
 ```
 
 Wait with the returned task ID, then download the result:
@@ -89,7 +92,8 @@ Repeat a parameter only when the live schema marks it as repeated. For example, 
 mediaio generate create image2image_gpt_image_2 \
   --prompt "combine these references into one coherent product scene" \
   --images <first_file_id> \
-  --images <second_file_id>
+  --images <second_file_id> \
+  --yes
 ```
 
 ## Error recovery
