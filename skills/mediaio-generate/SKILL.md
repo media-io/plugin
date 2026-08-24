@@ -1,7 +1,7 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.2.4"
+  version: "0.2.5"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
@@ -196,7 +196,7 @@ Workflows and effects are separate discovery views, but they are submitted throu
    mediaio generate wait <task_id> --timeout 20m --download "$(mktemp -d)"
    ```
 
-7. **Deliver.** Retrieve the result file with the CLI, never by re-entering a URL:
+7. **Deliver.** Retrieve every result file with the CLI, never by re-entering, re-fetching, or hand-copying a URL. Do not run `curl`/`wget`/a browser against a result URL yourself, even to "double check" it — that is exactly how a 430-510 character signed URL gets corrupted. If a fetch fails, re-run `generate download`/`generate query` for a fresh signature instead of retrying your own copy of the URL.
 
    1. Create a writable temporary directory with `mktemp -d`.
    2. Download the task's results into it:
@@ -205,9 +205,9 @@ Workflows and effects are separate discovery views, but they are submitted throu
       mediaio generate download <task_id> --output-dir "$tmp_dir"
       ```
 
-      Every non-comment line is a local path; each file is preceded by a `# file[N] ...` metadata line and a `# url[N] <url>` line carrying the source URL. Use `grep -v '^#'` to keep only the paths. Use `--index N` to fetch a single result, and `--variant preview` only when the user explicitly wants the compressed preview instead of the full-resolution file. `--variant original` is the default and is what you should normally deliver.
-   3. Require a non-empty file, then inspect it with `file --brief --mime-type "$download_path"`. Continue with the image path only for `image/*`. If the CLI-provided filename already carries an accurate extension, keep it; otherwise derive one from common MIME types (`image/png` → `png`, `image/jpeg` → `jpg`, `image/webp` → `webp`, `image/gif` → `gif`). Never label an unknown image as PNG.
-   4. Deliver the file back to the host as a local-path Markdown image using the standard syntax `![preview](<local-path>)`. When the local path contains spaces, parentheses, or non-ASCII characters, wrap the target in angle brackets. Prefer the local downloaded file over the remote HTTPS URL.
+      Every non-comment line is a local path; each file is preceded by a `# file[N] ...` metadata line and a `# url[N] <url>` line carrying the source URL. Use `grep -v '^#'` to keep only the paths. Omit `--index` so every result file is downloaded — a task can produce more than one. Use `--index N` only when the user explicitly wants a single specific result, and `--variant preview` only when they explicitly want the compressed preview instead of the full-resolution file. `--variant original` is the default and is what you should normally deliver.
+   3. For **each** downloaded path (not just the first), require a non-empty file, then inspect it with `file --brief --mime-type "$download_path"`. Continue with the image path only for `image/*`. If the CLI-provided filename already carries an accurate extension, keep it; otherwise derive one from common MIME types (`image/png` → `png`, `image/jpeg` → `jpg`, `image/webp` → `webp`, `image/gif` → `gif`). Never label an unknown image as PNG.
+   4. Deliver **every** verified file back to the host as its own local-path Markdown image, in the same order `generate download` printed them, using the standard syntax `![preview](<local-path>)`. A task with N result files means N images in the reply — never stop after the first one. When a local path contains spaces, parentheses, or non-ASCII characters, wrap the target in angle brackets. Prefer the local downloaded file over the remote HTTPS URL.
    5. Report completion only after providing the local Markdown image snippet, or after establishing that local-path Markdown cannot be used in the current host. In the latter case, explicitly say inline local preview is unavailable, and reuse the `# url[N]` line printed by `generate download` (or the shell capture shown in the result URL guardrail) rather than transcribing the URL.
    6. Do not remove the temporary directory before the final response is sent, because the host may resolve the local Markdown path when rendering the reply.
    7. `curl` is a fallback only when `generate download` is unavailable in the installed build. In that case still capture the URL into a shell variable and pass `"$url"` unmodified:
