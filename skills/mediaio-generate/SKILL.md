@@ -1,7 +1,7 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
@@ -53,7 +53,7 @@ Before any generation command:
 1. **Estimate.** After the parameters are final and any source media is uploaded, run the estimate with the exact same job type and parameters you are about to submit:
 
    ```bash
-   mediaio generate estimate <job_type> [--param value]... --json
+   mediaio generate estimate <job_type> [--param value]... 
    ```
 
    The estimate spends nothing. It reports `credit`, `known`, `rule_type`, the billed `fields`, and the account `balance`.
@@ -123,7 +123,7 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 
 ## Output modes
 
-Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shorthand for `--output full`). `brief` is the default and is what you should use:
+Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shorthand for `--output full`). **`brief` is the default — do not pass `--output` at all.** It is what you should read:
 
 | Command | Default brief output |
 | --- | --- |
@@ -131,17 +131,20 @@ Every `generate` subcommand accepts `--output brief|json|full` (`--full` is shor
 | `generate wait` / `generate query` (success) | `task_id=`, `uni_fun_code=`, `algorithm_name=`, `module=`, `status=`, `status_code=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
 | `generate wait` / `generate query` (failure) | `status=`, `status_code=`, `reason_code=`, `reason_label=`, `reason=` lines |
 | `generate list` | one tab-separated row per task (`task_id`, `status`, `uni_fun_code`, `algorithm_name`, `module`, `begin`, `end`), no URLs |
+| `generate estimate` | `job type:`, `rule type:`, `billed fields:`, `estimate:`, `balance:`, `note:` lines |
 | `generate download` | one local file path per non-comment line, preceded by a `# uni_fun_code <code>` line and per-file `# file[N] ...` metadata and `# url[N] <url>` lines |
 
 `uni_fun_code` is the only field that identifies which model produced a task. The raw `algorithm` field is `combo_alg` for every workflow task, so it is omitted from brief output unless it holds a real value (`tts`, `agent2mv`, ...). Likewise `generate list --algorithm` filters by algorithm channel, not by model.
 
-Use `--output json` when a script needs to parse the result instead of a human reading it. It prints exactly one JSON document on stdout, always starting with `"schema_version": 1` and `"command": "generate.<sub>"`; failures print `"error": {"kind", "message"}` in the same shape while the exit code and the stderr message stay unchanged. Progress lines from `generate wait` always go to stderr, so `--output json` output stays pipeable into `jq`.
+Use `--output json` only when a script needs to parse the result instead of a human reading it. It prints exactly one JSON document on stdout, always starting with `"schema_version": 1` and `"command": "generate.<sub>"`; failures print `"error": {"kind", "message"}` in the same shape while the exit code and the stderr message stay unchanged. Credit estimates, confirmation prompts and `generate wait` progress lines all go to stderr, so `--output json` output stays pipeable into `jq`.
 
-Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload (wrapped in a valid `{"code","msg","data"}` JSON document), whose escaped JSON is exactly what must not be transcribed by hand.
+**There is no `--json` flag.** Passing one is an error that tells you to use `--output json`. `--output` is the single entry point for output detail.
+
+Use `--output full` only when the user explicitly asks for diagnostics; it prints the raw API payload (wrapped in a valid `{"code","msg","data"}` JSON document), whose escaped JSON is exactly what must not be transcribed by hand. `generate estimate` is computed locally and has no upstream payload, so its `full` is identical to `brief`.
 
 ## Discovery guardrail
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands do not accept `--json`. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
+When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands have no JSON mode. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
 
@@ -178,7 +181,7 @@ Workflows and effects are separate discovery views, but they are submitted throu
    mediaio upload create ./reference.png
    ```
 
-4. **Estimate and get approval.** Apply the credit confirmation gate above. Run `mediaio generate estimate <job_type> [--param value]... --json` with the final parameters, show the cost and balance to the user, and stop until they approve. Skip the pause only when the user already opted out for this session or account.
+4. **Estimate and get approval.** Apply the credit confirmation gate above. Run `mediaio generate estimate <job_type> [--param value]...` with the final parameters, show the cost and balance to the user, and stop until they approve. Skip the pause only when the user already opted out for this session or account.
 
 5. **Submit.** Pass only parameters exposed by the live schema, plus `--yes` to record the approval you just received:
 
@@ -233,8 +236,7 @@ mediaio generate estimate text2image_gpt_image_2 \
   --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
   --quality high \
   --size 1024x1024 \
-  --output_format png \
-  --json
+  --output_format png
 # show the estimate to the user, wait for their approval, then submit
 mediaio generate create text2image_gpt_image_2 \
   --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
@@ -264,7 +266,8 @@ Only the command families printed by the current `mediaio --help` output are exe
 - `credit confirmation required: ... rerun with --yes only after they approve` → the CLI blocked an unconfirmed charge. Show the printed estimate to the user, wait for a real answer, then resubmit with `--yes`. Never satisfy this error by attaching `--yes`, `--skip-estimate`, or an auto-confirm switch on your own.
 - `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` → the parameters changed after the approval. Show Y to the user and ask again; never silently resubmit with Y.
 - `--skip-estimate is only allowed on an interactive terminal` → drop the flag so the cost is printed.
-- `flag provided but not defined: -json` → remove `--json`. Discovery commands have no JSON mode; `generate` subcommands offer `--output brief|json|full` instead.
+- `--json is not supported; use --output json instead` → drop `--json`. Output detail has a single entry point, `--output brief|json|full`, and `brief` (no flag) is what you normally want.
+- `flag provided but not defined: -json` → the installed build predates that error message; the fix is the same: drop `--json`. Discovery commands have no JSON mode.
 - `flag provided but not defined: -output` or `-download` → the installed build predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture any URL with a shell variable instead of transcribing it.
 - `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.

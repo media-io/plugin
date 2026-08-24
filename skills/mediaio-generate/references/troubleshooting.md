@@ -54,16 +54,18 @@ Signed Media.io result URLs are hosted on the shared drive storage and carry an 
 
 ## Output modes
 
-- `generate` subcommands accept `--output brief|json|full`; `brief` is the default. `json` emits one normalized document with a stable `schema_version`. Discovery commands (`model list`, `workflow get`, ...) still have no JSON mode.
+SKILL.md already states the rule: pass no `--output`, read the default `brief`. The rest of this section only matters when a script needs the machine contract or when the installed build is out of date.
+
+- `--output json` prints exactly one JSON document on stdout, starting with `"schema_version": 1` and `"command": "generate.<sub>"`; failures use the same shape with `"error": {"kind", "message"}` and leave the exit code unchanged. Credit estimates, confirmation prompts and `generate wait` progress lines all go to stderr, so the document stays pipeable into `jq`. Discovery commands (`model list`, `workflow get`, ...) have no JSON mode.
+- `--output full` prints the raw API payload. Its escaped JSON (`\u0026` for `&`, `\"` for quotes) is exactly how result URLs get corrupted when decoded by hand, so use it for diagnostics only.
 - `flag provided but not defined: -output` or `-download` means the installed BIN predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture URLs with a shell variable rather than transcribing them.
-- Use `--output full` only for diagnostics. Its raw payload contains escaped JSON (`\u0026` for `&`, `\"` for quotes), and decoding that by hand is exactly how result URLs get corrupted.
 
 ## Job lifecycle
 
 - `Job ended with status "failed"` — server-side failure. Often prompt content / safety. Try rephrasing.
 - `nsfw` / `ip_detected` — content policy. Rephrase.
 - `Timeout after 10m` — model is slow today. Bump `--timeout 30m` or retry.
-- Submission succeeds but `generate wait` reports a failing terminal status with a generic `reason_code` (e.g. `680100`, shown as `reason_label=system_error_generic`) and a non-specific `系统错误`/system-error message — for `image2image_*`, `image2video_*`, `img2vid_*`, or `reference2video_*` job types this usually means no source image/video was uploaded and passed. `680100` is the server's catch-all code and carries no specific cause, so do not read a content-policy or model problem into it. Check the command actually included an uploaded `file_id` for the image/video parameter; if not, ask the user for the source file and resubmit instead of retrying the same command.
+- Submission succeeds but `generate wait` reports a failing terminal status with a generic `reason_code` (e.g. `680100`, shown as `reason_label=system_error_generic`) and a non-specific system-error message — for `image2image_*`, `image2video_*`, `img2vid_*`, or `reference2video_*` job types this usually means no source image/video was uploaded and passed. `680100` is the server's catch-all code and carries no specific cause, so do not read a content-policy or model problem into it. Check the command actually included an uploaded `file_id` for the image/video parameter; if not, ask the user for the source file and resubmit instead of retrying the same command.
 
 ### Status and reason codes
 
@@ -104,7 +106,7 @@ If `Failed to decode response. Body: <html>...captcha-delivery...` appears, the 
 
 ## Cost and credit confirmation
 
-`mediaio generate estimate <job_type> [--param value]... --json` returns the pre-submit credit cost without spending anything. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
+`mediaio generate estimate <job_type> [--param value]...` returns the pre-submit credit cost without spending anything. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 
 - `credit confirmation required: ... rerun with --yes only after they approve` — the CLI refused to spend credits without the user seeing the cost. Show the estimate printed above the error to the user, wait for an explicit approval, then resubmit with `--yes`. Never satisfy this error by attaching `--yes`, `--skip-estimate` or an auto-confirm switch on your own initiative.
 - `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` — the parameters changed after the approval. Show Y to the user and ask again.

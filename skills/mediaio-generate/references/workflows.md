@@ -27,7 +27,7 @@ Save each returned `file_id`, then map it to the exact parameter name shown by `
 Workflows use the same create command as models. Estimate the cost and get the user's approval first, then record it with `--yes`:
 
 ```bash
-mediaio generate estimate <workflow_name> [--param value]... --json
+mediaio generate estimate <workflow_name> [--param value]...
 mediaio generate create <workflow_name> [--param value]... --yes
 ```
 
@@ -51,7 +51,7 @@ mediaio generate query <workflow_name> <task_id>
 
 ## Cost information
 
-Run `mediaio generate estimate <workflow_name> [--param value]... --json` with the exact parameters you are about to submit. It spends nothing and returns the credit cost, the billed fields and the account balance. Show that number to the user and wait for their approval before `generate create`, then submit with `--yes`.
+Run `mediaio generate estimate <workflow_name> [--param value]...` with the exact parameters you are about to submit. It spends nothing and returns the credit cost, the billed fields and the account balance. Show that number to the user and wait for their approval before `generate create`, then submit with `--yes`.
 
 When the estimate returns `known=false`, the cost cannot be resolved locally (for example a rule that depends on server-side media metadata). Tell the user the exact cost is unavailable instead of inventing it, and submit only after they approve.
 
