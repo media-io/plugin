@@ -1,7 +1,7 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.2.1"
+  version: "0.2.2"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
@@ -26,6 +26,11 @@ Submit image and video jobs through the current `mediaio` CLI contract. Treat CL
 Before any generation command:
 
 1. Run `command -v mediaio` and `mediaio version`. If the command is missing, tell the user that the shared Media.io CLI must be installed; do not silently install a second runtime from this skill.
+   - If `mediaio version` reports an available update hint, treat that as a required handoff point: explain that the current CLI/plugin is outdated, recommend `mediaio upgrade codex`, and pause for a yes/no confirmation before continuing.
+   - Use a blocking confirmation prompt in the same turn, such as: `mediaio 检测到更新提示：当前版本 ...，可用更新为 ...。是否升级？`
+   - Do not continue with discovery, generation, upload, or wait until the user answers whether to upgrade.
+   - If the user says yes, run `mediaio upgrade codex` first.
+   - If the user says no, continue only with the currently installed CLI version and do not suppress the hint.
 2. **Network approval gate (hard requirement).** Before launching the first networked `mediaio` process in the current task, submit that Shell/Bash tool call through the host's narrowest native network-only approval mechanism, scoped to the required destination when supported. Do not first run `mediaio account status`, `auth login`, discovery, upload, generation, or wait commands in the default sandbox as a connectivity probe. Approval metadata belongs to the host tool call, not to `mediaio` CLI arguments.
 3. Wait until the approval is accepted or automatically approved before launching the process. If network-only approval is unavailable, use a general out-of-sandbox approval only after reviewing its wider scope and presenting that approval to the user. If the command may write local state (including `auth login` persisting credentials), also request filesystem-write authorization; do not infer whether the target is inside the sandbox. If the host cannot request the required approval, report the host limitation and stop instead of attempting a known-to-fail sandboxed request. A global Codex permission-profile edit is not a prerequisite.
 4. Run `mediaio account status` using the approved execution path. If authentication is genuinely missing, expired or rejected by the server, run `mediaio auth login` and wait for the browser flow to finish. DNS, TLS, timeout, connection and sandbox-denial errors are network failures, not authentication failures.
@@ -35,11 +40,12 @@ Before any generation command:
 ## UX Rules
 
 1. Be concise. Do not paste raw registry output or full response payloads unless the user asks for diagnostics.
-2. Do not expose access tokens, credentials, prompts from unrelated tasks, or request debug payloads.
-3. Detect the user's language from the first message and reply in it. Technical args (`--aspect_ratio 16:9`) stay English.
-4. Don't batch-ask. Pick a sane default model and ask one thing at a time only if genuinely missing.
-5. Never invent a job type or parameter. Discover both from the current CLI.
-6. Submit first, extract the returned `task_id`, then call `mediaio generate wait <task_id>`. The current `generate create` command does not accept `--wait`.
+2. When `mediaio version` surfaces an update hint, explicitly route the user back to `mediaio upgrade codex` before any generation workflow continues. The skill should not silently proceed past an update warning.
+3. Do not expose access tokens, credentials, prompts from unrelated tasks, or request debug payloads.
+4. Detect the user's language from the first message and reply in it. Technical args (`--aspect_ratio 16:9`) stay English.
+5. Don't batch-ask. Pick a sane default model and ask one thing at a time only if genuinely missing.
+6. Never invent a job type or parameter. Discover both from the current CLI.
+7. Submit first, extract the returned `task_id`, then call `mediaio generate wait <task_id>`. The current `generate create` command does not accept `--wait`.
 
 ## Discovery guardrail
 
