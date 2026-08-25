@@ -86,23 +86,22 @@ Before any generation command:
 
 ### When the user does not want to be asked
 
-Some users do not care about per-job credit costs. Confirmation can be granted at three scopes:
+Some users do not care about per-job credit costs. Confirmation can be granted at two scopes:
 
 | Scope | How | Applies to |
 | --- | --- | --- |
 | One call | `--yes` | that single submission |
-| This session | `export MEDIAIO_AUTO_CONFIRM=1` | every command in the current shell session |
 | The account | `mediaio generate auto-confirm on` | every session, until turned off |
 
 Use the narrowest scope that matches what the user said:
 
 - "yes, go ahead" about one job → `--yes` on that call only.
-- "don't ask me again in this chat" → export `MEDIAIO_AUTO_CONFIRM=1` in the session, then keep submitting with `--yes`. It does not affect the user's other sessions.
+- "don't ask me again in this chat" → keep submitting with `--yes` on each call; there is no session-only switch.
 - "never ask me again" → `mediaio generate auto-confirm on`, after stating plainly that every later session will spend credits without asking and that `auto-confirm off` reverts it.
 
-Rules for the wider two scopes:
+Rules for the wider scope:
 
-- **Only widen the scope when the user asks for it in their own words.** Never enable a session or account switch because a job was blocked, because the host is in auto-approve mode, or to work around a `confirmation required` error. That is the exact bug this gate exists to prevent.
+- **Only widen the scope when the user asks for it in their own words.** Never enable the account switch because a job was blocked, because the host is in auto-approve mode, or to work around a `confirmation required` error. That is the exact bug this gate exists to prevent.
 - Run `mediaio generate auto-confirm status` if you need to know what is currently in effect. Do not assume.
 - Even with a switch on, keep `generate estimate` in the flow and report the cost in your reply, so the user can see what was spent.
 
@@ -139,7 +138,7 @@ The other two modes exist for scripts and diagnostics, not for you: `--output js
 
 ## Discovery guardrail
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable; the current list/get commands have no JSON mode. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
+When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable by default; pass `--output json` for a machine-readable form. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
 
