@@ -1,10 +1,11 @@
 # Media.io Agent Skills
 
 `media-plugin-main` maintains plugin manifests for both `Codex` and `Claude Code`.
-They share the same `skills/` directory, but each host uses its own manifest:
+Each release keeps the Codex manifest, Claude manifest, and shared `skills/` metadata on the same version so both hosts load the same skills snapshot. They share the same `skills/` directory, but each host uses its own manifest:
 
 - `Codex`: `.codex-plugin/plugin.json`
 - `Claude Code`: `.claude-plugin/plugin.json`
+- `Shared skills`: `skills/mediaio-generate/SKILL.md`
 
 The current `Claude Code` integration reuses a locally installed `mediaio` CLI
 and does not depend on remote MCP configuration from `media-plugin-api` or
@@ -51,6 +52,11 @@ Then install this repository as a `Claude Code` plugin and use
 > running the skill.
 
 ## Current Skills
+
+### `mediaio-install`
+
+Install or update the shared Media.io CLI and plugin manifests for Codex or
+Claude Code. Use for setup and refresh flows, not for generation tasks.
 
 ### `mediaio-generate`
 
