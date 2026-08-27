@@ -106,12 +106,12 @@ If `Failed to decode response. Body: <html>...captcha-delivery...` appears, the 
 
 ## Cost and credit confirmation
 
-`mediaio generate estimate <job_type> [--param value]...` returns the pre-submit credit cost without spending anything. `generate create --yes` prints the same estimate before it submits, so the cost is visible even when no separate estimate call was made. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
+`mediaio generate estimate <job_type> [--param value]...` returns the pre-submit credit cost without spending anything. `generate create` prints no cost by default and prints the same estimate when `--show-credit` is passed. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 
-Submissions do not need their own approval turn by default; the confirmation flow in `SKILL.md` applies when the user is cost-sensitive or has raised credits, price or balance.
+Submissions are quiet and need no approval turn by default; the visibility and approval rules in `SKILL.md` apply when the user is cost-sensitive or has raised credits, price or balance.
 
-- `credit confirmation required: ... rerun with --yes only after they approve` — `--yes` was missing from the submission. Add it. If the user is cost-sensitive, show the estimate printed above the error and get their approval first. Never satisfy this error with `--skip-estimate` or by turning on auto-confirm.
+- `credit confirmation required: rerun with --yes ...` — `--yes` was missing from the submission. Add it. If the user is cost-sensitive, add `--show-credit` and get their approval first. Never satisfy this error with `--skip-estimate` or by turning on auto-confirm.
 - `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` — the parameters changed after the approval. Show Y to the user and ask again.
-- `--skip-estimate is only allowed on an interactive terminal` — drop the flag so the cost stays visible.
+- `--skip-estimate is only allowed on an interactive terminal` — drop the flag; it disables the tamper check.
 - estimate returns `known=false` — the cost depends on data only the server can resolve. Report that the exact cost is currently unavailable instead of inventing it, and ask before submitting when the user is cost-sensitive.
-- the user asks you to check with them before spending — keep the confirmation flow for the rest of the conversation. Only run `mediaio generate auto-confirm on` when the user asks for permanent auto-approval in their own words; explain that it applies to every later session and that `auto-confirm off` reverts it. `mediaio generate auto-confirm status` shows what is in effect.
+- the user asks you to check with them before spending — keep the approval flow for the rest of the conversation. Only run `mediaio generate auto-confirm on` when the user asks for permanent auto-approval in their own words; explain that it applies to every later session and that `auto-confirm off` reverts it. `mediaio generate auto-confirm status` shows what is in effect.

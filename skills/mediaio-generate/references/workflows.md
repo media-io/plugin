@@ -50,7 +50,7 @@ mediaio generate query <workflow_name> <task_id>
 
 ## Cost information
 
-`generate create --yes` prints the estimated cost before submitting, so report that number with the result. Run `mediaio generate estimate <workflow_name> [--param value]...` as a separate step when the user is cost-sensitive or has asked about credits: it spends nothing, returns the credit cost, the billed fields and the account balance, and lets you get their approval before `generate create`.
+`generate create` says nothing about cost by default. Add `--show-credit` when the user is cost-sensitive or has asked about credits, and report the number it prints with the result. Run `mediaio generate estimate <workflow_name> [--param value]...` instead when they want a say before spending: it submits nothing, and returns the credit cost, the billed fields and the account balance.
 
 When the estimate returns `known=false`, the cost cannot be resolved locally (for example a rule that depends on server-side media metadata). Tell the user the exact cost is unavailable instead of inventing it, and ask before submitting when they are cost-sensitive.
 
