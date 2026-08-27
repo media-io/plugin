@@ -24,10 +24,9 @@ Save each returned `file_id`, then map it to the exact parameter name shown by `
 
 ## Submit
 
-Workflows use the same create command as models. Estimate the cost and get the user's approval first, then record it with `--yes`:
+Workflows use the same create command as models, and `--yes` is required on every submission:
 
 ```bash
-mediaio generate estimate <workflow_name> [--param value]...
 mediaio generate create <workflow_name> [--param value]... --yes
 ```
 
@@ -51,9 +50,9 @@ mediaio generate query <workflow_name> <task_id>
 
 ## Cost information
 
-Run `mediaio generate estimate <workflow_name> [--param value]...` with the exact parameters you are about to submit. It spends nothing and returns the credit cost, the billed fields and the account balance. Show that number to the user and wait for their approval before `generate create`, then submit with `--yes`.
+`generate create` says nothing about cost by default. Add `--show-credit` when the user is cost-sensitive or has asked about credits, and report the number it prints with the result. Run `mediaio generate estimate <workflow_name> [--param value]...` instead when they want a say before spending: it submits nothing, and returns the credit cost, the billed fields and the account balance.
 
-When the estimate returns `known=false`, the cost cannot be resolved locally (for example a rule that depends on server-side media metadata). Tell the user the exact cost is unavailable instead of inventing it, and submit only after they approve.
+When the estimate returns `known=false`, the cost cannot be resolved locally (for example a rule that depends on server-side media metadata). Tell the user the exact cost is unavailable instead of inventing it, and ask before submitting when they are cost-sensitive.
 
 `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 
@@ -70,6 +69,6 @@ For every documented workflow:
 
 1. Confirm its exact identifier in live `mediaio workflow list`.
 2. Confirm its complete schema with `mediaio workflow get <workflow_name>`.
-3. Build examples only with `mediaio generate estimate`, then `mediaio generate create --yes`, then `mediaio generate wait`.
+3. Build examples only with `mediaio generate create --yes`, then `mediaio generate wait`.
 4. Keep result lookup on `mediaio generate query <workflow_name> <task_id>` and result retrieval on `mediaio generate download <task_id>`.
 5. Document cost only from `mediaio generate estimate` output returned by the live BIN.
