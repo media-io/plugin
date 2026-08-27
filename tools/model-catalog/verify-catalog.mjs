@@ -1,11 +1,13 @@
-// 发布 gate：校验 V1–V12。只读本地快照、overlay 与产物，不联网、不需要登录。
+// 发布 gate：校验 V0–V13。只读本地快照、overlay 与产物，不联网、不需要登录。
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
 import {
   CATALOG_PATH,
   CATALOG_SCHEMA_VERSION,
   OVERLAY_PATH,
+  SKILLS_DIR,
   SLOT_MODULES,
   SNAPSHOT_PATH,
   STABILITY_VALUES,
@@ -19,6 +21,25 @@ import {
 
 const FRESHNESS_WARN_DAYS = 30;
 const FRESHNESS_FAIL_DAYS = 180;
+
+// overlay 的 when 是分发文案，必须英文；兜底规则据此识别。
+const CATCH_ALL = /everything else|anything else|otherwise|no special|default/i;
+
+// 产物中的权限等级脚注，缺失即视为来源声明丢失。
+const TIER_FOOTNOTE = 'Access tier is **manually curated**';
+
+const CJK = /[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
+
+/** 递归列出目录下所有文件。 */
+function walk(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) out.push(...walk(full));
+    else out.push(full);
+  }
+  return out;
+}
 
 const failures = [];
 const warnings = [];
@@ -149,7 +170,7 @@ function main() {
       }
     });
     const last = rules[rules.length - 1];
-    if (last && !/其他|默认|兜底/.test(last.when ?? '')) {
+    if (last && !CATCH_ALL.test(last.when ?? '')) {
       warn('V4', `routing.${slot} 的最后一条不像兜底规则，可能存在无法命中的意图`);
     }
   }
@@ -205,7 +226,7 @@ function main() {
       );
     }
   }
-  check('V9', markdown.includes('权限等级为**人工标注**'), '产物缺少权限等级的来源脚注');
+  check('V9', markdown.includes(TIER_FOOTNOTE), '产物缺少权限等级的来源脚注');
 
   // V11 —— 显示名不得跨记录拼接。
   const displayNames = new Set(snapshot.models.map((m) => m.display_name).filter(Boolean));
@@ -222,6 +243,22 @@ function main() {
       model.display_name === name,
       `产物把 ${JSON.stringify(jobType)} 标成显示名「${name}」，快照中它是「${model.display_name}」`,
     );
+  }
+
+  // V13 —— 分发给用户的 skills/ 整树不得含 CJK，产物与手写文件同管。
+  for (const file of walk(SKILLS_DIR)) {
+    let text;
+    try {
+      text = readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
+    if (text.includes('\u0000')) continue;
+    text.split('\n').forEach((line, i) => {
+      if (CJK.test(line)) {
+        check('V13', false, `${relative(SKILLS_DIR, file)}:${i + 1} 含中文，分发物必须全英文 —— ${line.trim().slice(0, 60)}`);
+      }
+    });
   }
 
   // schema 版本一致。
@@ -242,7 +279,7 @@ function main() {
   }
 
   info(
-    `OK    V0-V12 全部通过（environment=${snapshot.environment}, models=${snapshot.model_count}, digest=${snapshot.snapshot_digest}${warnings.length ? `, ${warnings.length} 条告警` : ''}）`,
+    `OK    V0-V13 全部通过（environment=${snapshot.environment}, models=${snapshot.model_count}, digest=${snapshot.snapshot_digest}${warnings.length ? `, ${warnings.length} 条告警` : ''}）`,
   );
   info(`      快照 ${SNAPSHOT_PATH}`);
   info(`      overlay ${OVERLAY_PATH}`);

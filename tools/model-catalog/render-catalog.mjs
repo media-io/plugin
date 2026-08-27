@@ -11,17 +11,17 @@ import {
 } from './lib.mjs';
 
 const SLOT_LABELS = {
-  text2image: '纯文生图（无参考图）',
-  image2image: '图生图（有参考图）',
-  video: '视频',
+  text2image: 'Text to image (no reference image)',
+  image2image: 'Image to image (with reference image)',
+  video: 'Video',
 };
 
 const MODULE_LABELS = {
-  text2image: 'text2image — 文生图',
-  image2image: 'image2image — 图生图',
-  text2video: 'text2video — 文生视频',
-  image2video: 'image2video — 图生视频',
-  reference2video: 'reference2video — 多参考图生视频',
+  text2image: 'text2image — text to image',
+  image2image: 'image2image — image to image',
+  text2video: 'text2video — text to video',
+  image2video: 'image2video — image to video',
+  reference2video: 'reference2video — multi-reference to video',
 };
 
 /** 目录里的 job_type 一律用反引号包裹，含空格时额外提示，避免被读成两个词。 */
@@ -43,9 +43,9 @@ function renderHeader(snapshot) {
   return [
     '# Media.io Model Catalog',
     '',
-    '> 生成产物，请勿手改。改 `catalog/model-catalog.overlay.json` 后重跑 `sh scripts/model-catalog.sh sync`。',
+    '> Generated artifact — do not edit by hand. Change `catalog/model-catalog.overlay.json`, then re-run `sh scripts/model-catalog.sh sync`.',
     '',
-    '| 元数据 | 值 |',
+    '| Field | Value |',
     '| --- | --- |',
     `| generated_at | ${snapshot.generated_at} |`,
     `| environment | ${snapshot.environment} |`,
@@ -59,26 +59,26 @@ function renderHeader(snapshot) {
 
 function renderUsageRules() {
   return [
-    '## 0. 使用规则',
+    '## 0. How to use this file',
     '',
-    '1. **静态优先。** 常规意图路由只读本文件，不要跑 `mediaio model list`。',
-    '2. **选型后仍要跑 `mediaio model get <job_type>`** 取参数 schema。本文件不承诺参数，也不得从本文件推断参数。',
-    '3. **`job_type` 逐字节复制**，禁止 trim、禁止改大小写、禁止"修正"看起来像笔误的名字。含空格的取值在 shell 里必须加引号。',
-    '4. **只能由显示名查 `job_type`，不能反推。** 显示名与 `job_type` 大量不对应（见第 6 节），且有重名；重名时列出候选让用户选。',
-    '5. **向用户复述选型时写成 `显示名（job_type）`**，让错位暴露在人眼前。',
-    '6. **允许回源的场景只有这几种**，其余一律不许跑 `model list`：',
-    '   - 用户点名的模型在第 2、5 节找不到 → `mediaio model list --grep <关键词> --output json`',
-    '   - 提交返回 `unknown job type` → 全量 `model list` 复核，并提示目录可能过期',
-    '   - 用户明确要"看全部/最新模型"、"有没有新模型" → 全量 `model list`',
-    '   - 降级前需确认降级目标仍在线 → `model list --grep` 校验',
-    '   - 本文件 `generated_at` 距今超过 30 天，或 `catalog_schema_version` 与 skill 期望不符（**纯本地判断，不发请求**）',
-    '   - 本文件缺失或元数据块损坏 → 退化为运行时发现',
+    '1. **Static first.** Route ordinary intent from this file alone; do not run `mediaio model list`.',
+    '2. **After selecting, still run `mediaio model get <job_type>`** for the parameter schema. This file makes no promise about parameters and must not be used to infer them.',
+    '3. **Copy `job_type` byte for byte.** Never trim it, never change case, never "fix" a name that looks like a typo. Values containing a space must be quoted in the shell.',
+    '4. **Map display name to `job_type` only, never the reverse.** Display names and `job_type` disagree in many cases (see section 6) and some names are shared. When a name is ambiguous, list the candidates and let the user choose.',
+    '5. **Report your choice as `Display Name (job_type)`** so any mismatch is visible to the user.',
+    '6. **A live lookup is allowed only in these cases**; otherwise never run `model list`:',
+    '   - A model the user named is not in section 2 or 5 → `mediaio model list --grep <keyword> --output json`',
+    '   - Submission returned `unknown job type` → full `model list` to re-check, and warn that this catalog may be stale',
+    '   - The user explicitly asks to see all/latest models, or whether new models exist → full `model list`',
+    '   - You need to confirm a fallback target is still online before switching → `model list --grep`',
+    '   - This file\'s `generated_at` is more than 30 days old, or `catalog_schema_version` does not match what the skill expects (**decided locally, no request**)',
+    '   - This file is missing or its metadata block is corrupt → fall back to runtime discovery',
     '',
   ];
 }
 
 function renderDefaults(overlay, index) {
-  const lines = ['## 1. 全局默认', '', '| 场景 | 默认模型 | job_type | 降级目标 | job_type |', '| --- | --- | --- | --- | --- |'];
+  const lines = ['## 1. Global defaults', '', '| Scenario | Default model | job_type | Fallback | job_type |', '| --- | --- | --- | --- | --- |'];
   for (const slot of Object.keys(SLOT_LABELS)) {
     const def = overlay.defaults?.[slot];
     const fb = overlay.fallbacks?.[slot];
@@ -95,9 +95,9 @@ function renderDefaults(overlay, index) {
 
 function renderFeatured(overlay, index) {
   const lines = [
-    '## 2. 精选模型',
+    '## 2. Featured models',
     '',
-    '| 显示名 | job_type | 权限等级* | 输入 | 何时选它 |',
+    '| Display name | job_type | Access tier* | Inputs | When to pick it |',
     '| --- | --- | --- | --- | --- |',
   ];
   for (const item of overlay.featured ?? []) {
@@ -108,17 +108,17 @@ function renderFeatured(overlay, index) {
   }
   lines.push('');
   lines.push(
-    '\\* 权限等级为**人工标注**，registry 无此字段。`unknown` 表示尚未与产品确认。实际是否扣费一律以 `mediaio generate estimate` 与服务端结果为准，不要照本文件向用户承诺免费。',
+    '\\* Access tier is **manually curated**; the registry has no such field. `unknown` means it has not been confirmed with the product team. Whether a job actually costs credits is decided by `mediaio generate estimate` and the server response — never tell the user a model is free based on this file.',
   );
   lines.push('');
   return lines;
 }
 
 function renderRouting(overlay, index) {
-  const lines = ['## 3. 场景路由', '', '按顺序匹配，**命中即停**，不要继续往下比。', ''];
+  const lines = ['## 3. Scenario routing', '', 'Match in order and **stop at the first hit**; do not keep comparing.', ''];
   for (const [slot, rules] of Object.entries(overlay.routing ?? {})) {
     lines.push(`### ${SLOT_LABELS[slot] ?? slot}`, '');
-    lines.push('| # | 条件 | 选它 | job_type |', '| --- | --- | --- | --- |');
+    lines.push('| # | Condition | Pick | job_type |', '| --- | --- | --- | --- |');
     rules.forEach((rule, i) => {
       const model = requireModel(index, rule.job_type, `routing.${slot}[${i}]`);
       lines.push(
@@ -132,35 +132,43 @@ function renderRouting(overlay, index) {
 
 function renderFallbackChain(overlay, index) {
   const lines = [
-    '## 4. 降级链',
+    '## 4. Fallback chain',
     '',
-    '触发条件：服务端返回权限不足、额度不足，或用户明确说要免费/更便宜的。',
+    'Triggers: the server reports insufficient permission or insufficient credits, or the user explicitly asks for a free or cheaper option.',
     '',
-    '| 场景 | 从 | 降到 | 说明 |',
+    '| Scenario | From | To | Note |',
     '| --- | --- | --- | --- |',
   ];
   for (const slot of Object.keys(SLOT_LABELS)) {
     const def = overlay.defaults?.[slot];
     const fb = overlay.fallbacks?.[slot];
     if (!def || !fb) continue;
-    const note = def === fb ? '默认模型本身即降级目标，无需切换' : '换模型后重新 estimate 再提交';
+    const note =
+      def === fb
+        ? 'The default already is the fallback; no switch needed'
+        : 'Re-run estimate after switching, then submit';
     lines.push(
       `| ${cell(SLOT_LABELS[slot])} | ${code(def)} | ${code(fb)} | ${cell(note)} |`,
     );
   }
   lines.push('');
-  lines.push('降级前先按第 0 节规则校验目标仍在线，再重新走一次积分确认。');
+  lines.push('Before falling back, confirm the target is still online under the rules in section 0, then repeat the credit confirmation step.');
   lines.push('');
   return lines;
 }
 
 function renderFullIndex(snapshot) {
-  const lines = ['## 5. 全量索引', '', `快照共 ${snapshot.model_count} 个生成类模型。本节只回答"这个模型存不存在、叫什么"，不负责选型。`, ''];
+  const lines = [
+    '## 5. Full index',
+    '',
+    `This snapshot contains ${snapshot.model_count} generation models. This section only answers whether a model exists and what it is called; it is not a selection guide.`,
+    '',
+  ];
   for (const module of GENERATION_MODULES) {
     const rows = snapshot.models.filter((m) => m.fun_module === module);
     if (!rows.length) continue;
-    lines.push(`### ${MODULE_LABELS[module] ?? module}（${rows.length}）`, '');
-    lines.push('| job_type | 显示名 | 描述 |', '| --- | --- | --- |');
+    lines.push(`### ${MODULE_LABELS[module] ?? module} (${rows.length})`, '');
+    lines.push('| job_type | Display name | Description |', '| --- | --- | --- |');
     for (const m of rows) {
       lines.push(`| ${code(m.job_type)} | ${cell(m.display_name)} | ${cell(m.description)} |`);
     }
@@ -182,50 +190,50 @@ function renderPitfalls(snapshot) {
   }
   const duplicates = [...byDisplay.entries()].filter(([, list]) => list.length > 1);
 
-  const lines = ['## 6. 已知陷阱', ''];
+  const lines = ['## 6. Known pitfalls', ''];
 
-  lines.push(`### 6.1 job_type 内含空格（${spaced.length} 条）`, '');
+  lines.push(`### 6.1 job_type contains a space (${spaced.length})`, '');
   if (spaced.length) {
-    lines.push('线上真实配置，**不会修改**。写成不带空格的版本会直接 `unknown job type`。shell 里必须加引号。', '');
-    lines.push('| job_type | 显示名 |', '| --- | --- |');
+    lines.push('These are the real production values and **will not be changed**. Writing them without the space fails with `unknown job type`. Always quote them in the shell.', '');
+    lines.push('| job_type | Display name |', '| --- | --- |');
     for (const m of spaced) lines.push(`| ${code(m.job_type)} | ${cell(m.display_name)} |`);
     lines.push('', '```bash', `mediaio model get "${spaced[0].job_type}"`, '```', '');
   } else {
-    lines.push('当前快照中没有这类取值。', '');
+    lines.push('No such values in the current snapshot.', '');
   }
 
-  lines.push(`### 6.2 前缀与 fun_module 不一致（${mismatched.length} 条）`, '');
+  lines.push(`### 6.2 Prefix does not match fun_module (${mismatched.length})`, '');
   if (mismatched.length) {
-    lines.push('不要根据 job_type 前缀推断它属于哪个模块，以本表为准。', '');
-    lines.push('| job_type | 实际 fun_module |', '| --- | --- |');
+    lines.push('Never infer a model\'s module from its job_type prefix. Use this table.', '');
+    lines.push('| job_type | Actual fun_module |', '| --- | --- |');
     for (const m of mismatched) lines.push(`| ${code(m.job_type)} | ${cell(m.fun_module)} |`);
     lines.push('');
   } else {
-    lines.push('当前快照中没有这类取值。', '');
+    lines.push('No such values in the current snapshot.', '');
   }
 
-  lines.push(`### 6.3 显示名重名（${duplicates.length} 组）`, '');
+  lines.push(`### 6.3 Duplicate display names (${duplicates.length} groups)`, '');
   if (duplicates.length) {
-    lines.push('**显示名不是主键。** 用户说出一个重名显示名时，列出候选让他选，不要自己挑第一个。', '');
-    lines.push('| 显示名 | 对应 job_type |', '| --- | --- |');
+    lines.push('**A display name is not a primary key.** When the user names one of these, list the candidates and let them choose instead of silently taking the first.', '');
+    lines.push('| Display name | job_type candidates |', '| --- | --- |');
     for (const [name, list] of duplicates.sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
       lines.push(`| ${cell(name)} | ${list.map(code).join('<br>')} |`);
     }
     lines.push('');
   } else {
-    lines.push('当前快照中没有重名。', '');
+    lines.push('No duplicate display names in the current snapshot.', '');
   }
 
-  lines.push('### 6.4 显示名与 job_type 语义错位', '');
+  lines.push('### 6.4 Display name and job_type disagree', '');
   lines.push(
-    '历史原因造成，`uni_fun_code` 不可改。**只能由显示名查 job_type，不能由 job_type 反推显示名。** 典型例子：',
+    'A historical artifact; `uni_fun_code` cannot be changed. **Map display name to job_type only, never the reverse.** Typical examples:',
     '',
   );
-  lines.push('| job_type | 显示名 | 容易误判成 |', '| --- | --- | --- |');
+  lines.push('| job_type | Display name | Commonly misread as |', '| --- | --- | --- |');
   const traps = [
     ['image2image_banana_2', 'Nano Banana 2'],
     ['text2image_banana_2', 'Nano Banana 2'],
-    ['text2image_soul_character', 'Soul / 角色模型'],
+    ['text2image_soul_character', 'a Soul / character-specific model'],
     ['image2video_tomoviee_2.5', 'ToMoviee 2.5'],
   ];
   const index = new Map(snapshot.models.map((m) => [m.job_type, m]));
@@ -241,23 +249,23 @@ function renderPitfalls(snapshot) {
 
 function renderCheatSheet(snapshot) {
   return [
-    '## 7. 回源指令速查',
+    '## 7. Live-lookup command reference',
     '',
     '```bash',
-    '# 按关键词找模型（第 0 节条件 1 才允许）',
+    '# Find a model by keyword (only under condition 1 in section 0)',
     'mediaio model list --grep seedance --output json',
     '',
-    '# 只看某个模块',
+    '# Restrict to one module',
     'mediaio model list --module image2video --output json',
     '',
-    '# 取参数 schema（每次选型后都要跑）',
+    '# Get the parameter schema (run this after every selection)',
     'mediaio model get image2image_media_3.0',
     '',
-    '# job_type 含空格时必须加引号',
+    '# job_type values containing a space must be quoted',
     'mediaio model get "image2video_seedance _2.5"',
     '```',
     '',
-    `> \`model list\` 的默认文本输出只有 \`job_type / type / description\`，**不含显示名**；需要显示名时必须加 \`--output json\` 读 \`model\` 字段。`,
+    `> The default text output of \`model list\` has only \`job_type / type / description\` and **no display name**. Add \`--output json\` and read the \`model\` field when you need it.`,
     '',
     '---',
     '',

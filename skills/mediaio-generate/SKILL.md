@@ -36,7 +36,7 @@ Before any generation command:
 
 1. Run `command -v mediaio` and `mediaio version`. If the command is missing, tell the user that the shared Media.io CLI must be installed; do not silently install a second runtime from this skill.
    - If `mediaio version` reports an available update hint, treat that as a required handoff point: explain that the current CLI/plugin is outdated, recommend `mediaio upgrade codex`, and pause for a yes/no confirmation before continuing.
-   - Use a blocking confirmation prompt in the same turn, such as: `mediaio 检测到更新提示：当前版本 ...，可用更新为 ...。是否升级？`
+   - Use a blocking confirmation prompt in the same turn, such as: `mediaio reports an update: installed ..., available .... Upgrade now?`
    - Do not continue with discovery, generation, upload, or wait until the user answers whether to upgrade.
    - If the user says yes, run `mediaio upgrade codex` first.
    - If the user says no, continue only with the currently installed CLI version and do not suppress the hint.
@@ -176,7 +176,7 @@ These are **not** reasons to call `model list`: routine intent routing, picking 
 1. **Copy `job_type` byte for byte.** Never trim it, change its case, or "fix" a name that looks wrong. Six production job types contain a literal space, for example `image2video_seedance _2.5`. Quote them in the shell: `mediaio model get "image2video_seedance _2.5"`.
 2. **Map display name → `job_type` only, never the reverse.** Display names are frequently unrelated to the identifier: `image2image_banana_2` is *Nano Banana Pro*, while *Nano Banana 2* is `image2image_nano_banana_2`. Look the name up in catalog section 5; do not assemble an identifier from what the user said.
 3. **Display names are not unique** — 37 groups collide. When a name matches several `job_type` values, list the candidates and let the user choose.
-4. **Echo both when you report your choice**: `显示名（job_type）`.
+4. **Echo both when you report your choice**: `Display Name (job_type)`.
 5. The catalog's permission tier column is a manual annotation. Never promise the user a model is free based on it; the cost comes from `generate estimate`.
 
 ### Workflows and effects

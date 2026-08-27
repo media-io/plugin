@@ -25,9 +25,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const MAIN_ROOT = resolve(HERE, '..', '..');
 export const SNAPSHOT_PATH = join(MAIN_ROOT, 'catalog', 'model-registry.snapshot.json');
 export const OVERLAY_PATH = join(MAIN_ROOT, 'catalog', 'model-catalog.overlay.json');
+
+/** 发布脚本整目录复制 skills/<name>/，此目录下的一切都会到达用户。 */
+export const SKILLS_DIR = join(MAIN_ROOT, 'skills');
 export const CATALOG_PATH = join(
-  MAIN_ROOT,
-  'skills',
+  SKILLS_DIR,
   'mediaio-generate',
   'references',
   'model-catalog.md',

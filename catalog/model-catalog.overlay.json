@@ -2,6 +2,7 @@
   "catalog_schema_version": 1,
   "_readme": [
     "人工策展层。sync 只覆盖 catalog/model-registry.snapshot.json，本文件跨同步持久，脚本只读不写。",
+    "语言规则：why 与 when 会逐字渲染进分发给用户的产物，必须写英文；rationale / _readme / notes 不进产物，维持中文。",
     "job_type 必须从快照逐字节复制：含空格与命名错位都是生产真实取值，不得规范化。",
     "stability=stable 的规则在同步时静默继承；stability=review 的会被列入待确认清单。",
     "tier 为人工标注，registry 无此字段；unknown 表示尚未与产品/服务端确认。"
@@ -21,103 +22,103 @@
       "job_type": "text2image_soul_character",
       "tier": "free",
       "inputs": ["prompt"],
-      "why": "纯文生图默认。生产不存在 text2image_media_3.0，这是免费且可直接出图的入口。",
+      "why": "Default for pure text-to-image. text2image_media_3.0 does not exist in production; this is the free entry point that returns an image directly.",
       "stability": "review"
     },
     {
       "job_type": "image2image_media_3.0",
       "tier": "unknown",
       "inputs": ["images", "prompt"],
-      "why": "图生图默认。角色一致性、服装控制与角色编辑的首选。",
+      "why": "Default for image-to-image. First choice for character consistency, outfit control and character editing.",
       "stability": "review"
     },
     {
       "job_type": "image2image_media_1.0",
       "tier": "unknown",
       "inputs": ["images", "prompt"],
-      "why": "图生图降级目标。权限不足或额度不够时改用它重试。",
+      "why": "Fallback target for image-to-image. Retry with this when permission or credits are insufficient.",
       "stability": "review"
     },
     {
       "job_type": "text2image_gpt_image_2",
       "tier": "unknown",
       "inputs": ["prompt"],
-      "why": "需要在画面里精准渲染文字、或构图特别复杂时使用。",
+      "why": "Use when text must be rendered accurately inside the image, or the composition is unusually complex.",
       "stability": "review"
     },
     {
       "job_type": "image2image_gpt_image_2",
       "tier": "unknown",
       "inputs": ["images", "prompt"],
-      "why": "带参考图且需要精准文字渲染时使用。",
+      "why": "Use with a reference image when text must be rendered accurately.",
       "stability": "review"
     },
     {
       "job_type": "text2image_banana_2",
       "tier": "unknown",
       "inputs": ["prompt"],
-      "why": "动漫、二次元与创意风格。注意显示名是 Nano Banana Pro，不是 Nano Banana 2。",
+      "why": "Anime, illustration and creative styles. Note the display name is Nano Banana Pro, not Nano Banana 2.",
       "stability": "review"
     },
     {
       "job_type": "image2image_banana_2",
       "tier": "unknown",
       "inputs": ["images", "prompt"],
-      "why": "带参考图的动漫与创意风格。显示名是 Nano Banana Pro。",
+      "why": "Anime and creative styles with a reference image. Display name is Nano Banana Pro.",
       "stability": "review"
     },
     {
       "job_type": "image2video_tomoviee_3.0",
       "tier": "unknown",
       "inputs": ["image", "prompt"],
-      "why": "视频默认。没有特殊诉求时一律用它。",
+      "why": "Default for video. Use it whenever there is no special requirement.",
       "stability": "review"
     },
     {
       "job_type": "image2video_tomoviee_2.0_fast",
       "tier": "unknown",
       "inputs": ["image", "prompt"],
-      "why": "视频降级目标。用户要速度、要低成本，或权限/额度不足时改用它。",
+      "why": "Fallback target for video. Use it when the user wants speed or lower cost, or when permission/credits are insufficient.",
       "stability": "review"
     },
     {
       "job_type": "image2video_seedance _2.5",
       "tier": "unknown",
       "inputs": ["image", "prompt"],
-      "why": "长视频、含音频、电影级质感。job_type 含一个空格，是生产真实取值。",
+      "why": "Long video, audio included, cinematic quality. The job_type contains one space; that is the real production value.",
       "stability": "review"
     },
     {
       "job_type": "image2video_seedance_2.5_reference_image",
       "tier": "unknown",
       "inputs": ["images", "prompt"],
-      "why": "多模态参考生视频（最多 50 张参考图），属于 reference2video 模块。",
+      "why": "Multi-reference video generation (up to 50 reference images); belongs to the reference2video module.",
       "stability": "review"
     },
     {
       "job_type": "image2video_kling_3.0",
       "tier": "unknown",
       "inputs": ["image", "prompt"],
-      "why": "强物理规律模拟：破碎、流体、碰撞。",
+      "why": "Strong physical simulation: shattering, fluids, collisions.",
       "stability": "review"
     }
   ],
   "routing": {
     "text2image": [
       {
-        "when": "画面里要精准渲染文字，或构图特别复杂",
+        "when": "Text must be rendered accurately in the image, or the composition is unusually complex",
         "job_type": "text2image_gpt_image_2",
         "rationale": "V0.5 需求文档指定的文字渲染与复杂构图档。",
         "stability": "stable"
       },
       {
-        "when": "动漫、二次元、创意风格",
+        "when": "Anime, illustration or creative style",
         "job_type": "text2image_banana_2",
         "rationale": "V0.5 需求文档指定的创意风格档；显示名 Nano Banana Pro。",
         "stability": "stable"
       },
       {
-        "when": "其他所有情况",
+        "when": "Everything else",
         "job_type": "text2image_soul_character",
         "rationale": "免费兜底。生产无 text2image_media_3.0，纯文生图不能落到 image2image 上。",
         "stability": "stable"
@@ -125,19 +126,19 @@
     ],
     "image2image": [
       {
-        "when": "画面里要精准渲染文字，或构图特别复杂",
+        "when": "Text must be rendered accurately in the image, or the composition is unusually complex",
         "job_type": "image2image_gpt_image_2",
         "rationale": "与 text2image 同档位，仅输入形态不同。",
         "stability": "stable"
       },
       {
-        "when": "动漫、二次元、创意风格",
+        "when": "Anime, illustration or creative style",
         "job_type": "image2image_banana_2",
         "rationale": "V0.5 需求文档指定的创意风格档；显示名 Nano Banana Pro。",
         "stability": "stable"
       },
       {
-        "when": "其他所有情况（含角色一致性、换装、角色编辑）",
+        "when": "Everything else, including character consistency, outfit swap and character editing",
         "job_type": "image2image_media_3.0",
         "rationale": "V0.5 需求文档的图像全局默认 ToMoviee 3.0 Pro。",
         "stability": "stable"
@@ -145,31 +146,31 @@
     ],
     "video": [
       {
-        "when": "多模态参考（多张参考图）",
+        "when": "Multi-modal reference with several reference images",
         "job_type": "image2video_seedance_2.5_reference_image",
         "rationale": "唯一支持多参考图的档位，属 reference2video 模块。",
         "stability": "stable"
       },
       {
-        "when": "长视频（约 30 秒）、需要音频、电影级质感",
+        "when": "Long video (around 30s), audio needed, or cinematic quality",
         "job_type": "image2video_seedance _2.5",
         "rationale": "V0.5 需求文档指定的长视频与电影级档；job_type 含空格。",
         "stability": "stable"
       },
       {
-        "when": "强物理规律模拟：破碎、流体、碰撞",
+        "when": "Strong physical simulation: shattering, fluids, collisions",
         "job_type": "image2video_kling_3.0",
         "rationale": "V0.5 需求文档指定的物理模拟档。",
         "stability": "stable"
       },
       {
-        "when": "用户明确要速度或要低成本",
+        "when": "User explicitly asks for speed or lower cost",
         "job_type": "image2video_tomoviee_2.0_fast",
         "rationale": "V0.5 需求文档指定的提速档，同时是非 VIP 的主降级目标。",
         "stability": "stable"
       },
       {
-        "when": "其他所有情况",
+        "when": "Everything else",
         "job_type": "image2video_tomoviee_3.0",
         "rationale": "V0.5 需求文档的视频全局默认 ToMoviee 3.0。",
         "stability": "stable"
