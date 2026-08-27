@@ -48,14 +48,12 @@ Each call prints a `file_id`. Pass that ID through the exact parameter exposed b
 ## Submit, wait, and retrieve
 
 ```bash
-mediaio generate estimate <job_type> [--param value]...
 mediaio generate create <job_type> [--param value]... --yes
 mediaio generate wait <task_id> --timeout 20m --interval 3s
 mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
-Run these as separate steps, and submit only after the user approved the
-estimate. The create command prints a `task_id=<id>`
+Run these as separate steps. The create command prints a `task_id=<id>`
 line; read the ID from there before calling `generate wait`.
 
 Use `generate download` to obtain the result file. Its non-comment lines are
