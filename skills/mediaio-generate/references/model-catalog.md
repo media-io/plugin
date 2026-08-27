@@ -1,210 +1,349 @@
-# Model Catalog
+# Media.io Model Catalog
 
-> Migration inventory: product names and recommendations below may be ahead of the installed BIN registry. Use only an exact `job_type` returned by `mediaio model list`, then inspect it with `mediaio model get <job_type>` before submission.
+> 生成产物，请勿手改。改 `catalog/model-catalog.overlay.json` 后重跑 `sh scripts/model-catalog.sh sync`。
 
-The catalog below records Media.io model positioning. Product labels are not guaranteed to be executable `job_type` values.
+| 元数据 | 值 |
+| --- | --- |
+| generated_at | 2026-08-27T13:21:28.571Z |
+| environment | prod |
+| vapi | https://vapi.media.io |
+| model_count | 109 |
+| snapshot_digest | d19322022f5e9c7d |
+| catalog_schema_version | 1 |
 
-Preferred defaults for examples and quick-start guidance in this repo:
-- **Images/design/text:** `gpt_image_2` (general/high-fidelity) and `nano_banana_2` (character/cartoon).
-- **Video:** `seedance_2_0` (all-purpose serious video).
-- **Character/stylized image work:** `text2image_soul_v2`.
-- **Audio:** `seed_audio` (general text-to-audio, voice-style, SFX, ambience, and music-like audio).
-- **Video analysis:** Virality Predictor (`brain_activity`) for attention, hook, retention, and virality scoring. It may appear under text/analysis because the output is a report, but the input and intent are video analysis.
+## 0. 使用规则
 
----
+1. **静态优先。** 常规意图路由只读本文件，不要跑 `mediaio model list`。
+2. **选型后仍要跑 `mediaio model get <job_type>`** 取参数 schema。本文件不承诺参数，也不得从本文件推断参数。
+3. **`job_type` 逐字节复制**，禁止 trim、禁止改大小写、禁止"修正"看起来像笔误的名字。含空格的取值在 shell 里必须加引号。
+4. **只能由显示名查 `job_type`，不能反推。** 显示名与 `job_type` 大量不对应（见第 6 节），且有重名；重名时列出候选让用户选。
+5. **向用户复述选型时写成 `显示名（job_type）`**，让错位暴露在人眼前。
+6. **允许回源的场景只有这几种**，其余一律不许跑 `model list`：
+   - 用户点名的模型在第 2、5 节找不到 → `mediaio model list --grep <关键词> --output json`
+   - 提交返回 `unknown job type` → 全量 `model list` 复核，并提示目录可能过期
+   - 用户明确要"看全部/最新模型"、"有没有新模型" → 全量 `model list`
+   - 降级前需确认降级目标仍在线 → `model list --grep` 校验
+   - 本文件 `generated_at` 距今超过 30 天，或 `catalog_schema_version` 与 skill 期望不符（**纯本地判断，不发请求**）
+   - 本文件缺失或元数据块损坏 → 退化为运行时发现
 
-## Image models
+## 1. 全局默认
 
-| Model | Provider | What it's for |
-|---|---|---|
-| Nano Banana 2 | Google | **Fast everyday default for character work.** Edits, general generation, character / cartoon / animated-style outputs. The reach-for-this model when the brief calls for character or cartoon-style image generation. |
-| Nano Banana 2 Lite | Google | **Lightweight Nano Banana 2.** Fast reference-driven image generation and edits when the brief is simple or cost/speed matters more than Pro-level fidelity. Supports up to 14 image references. |
-| Nano Banana Pro | Google | **Top-tier Nano Banana.** Same canvas as Nano Banana 2 with extra fidelity and accuracy on harder briefs. Pick when 2 isn't getting there. |
-| Nano Banana | Google | Reliable, budget-friendly entry in the Nano Banana family — picks up the same realistic look at a lighter price point. |
-| Media.io Soul 2.0 | Media.io | **Aesthetic UGC, fashion editorial, character generation.** When the brief leans editorial, lifestyle, or "looks like a magazine cover". Soul-aware (accepts a Soul Character reference). |
-| Soul Cinema | Media.io | **Cinematic stills, film-grade lighting.** The pick when the user asks for "cinematic" or wants concept-art mood. |
-| Soul Cast | Media.io | **Distinctive, characterful personas.** When the brief calls for a creative, expressive character rather than photoreal default. Text-only (no reference image). |
-| Soul Location | Media.io | **Best-in-class environments and locations.** Unmatched for pure scene and place generation without a person in frame. |
-| Seedream 4.5 | Bytedance | **Complex scene edits with faces.** When the brief is a face-anchored photo edit into a complex new scene (more than an outfit change), without heavy filters. |
-| Seedream 5.0 Lite | Bytedance | Same Seedream lineage as 4.5 with faster turnaround for visual-reasoning and instruction-based edits. |
-| Z Image | Tongyi-MAI | **Fastest in the catalog.** Built for speed, drafts, and LoRA-driven stylization. The pick when the brief is "fast and cheap, let me iterate". |
-| Flux 2.0 | Black Forest Labs | Precise prompt adherence with multiple variants (pro, flex, max). A strong creative alternative when the user wants a different look from the Banana family. |
-| Flux Kontext Max | Black Forest Labs | **Context-aware editing and style transfer.** Strong for anime, stylized looks, typography remix — when defaults feel too generic. |
-| Kling O1 Image | Kling | Versatile photorealistic image generation with broad aspect-ratio support. |
-| GPT Image 1.5 | OpenAI | Earlier-generation OpenAI image model with editing and text-rendering capabilities. |
-| GPT Image 2 | OpenAI | **Default high-fidelity image generation.** Graphic design, UI, banners, typography, and any brief with on-image text. Used by `mediaio-product-photoshoot` under the hood. |
-| Grok Imagine | xAI | Expressive, high-contrast, bold creative outputs. Worth trying for anime and stylized looks. |
-| Recraft V4.1 | Recraft | **Clean graphic and vector-style design assets.** Logos, icons, flat illustrations, brand marks, and controlled-palette visuals. Use `model_type=vector` for vector-like output and `standard` for raster-style graphics. |
-| Cinema Studio Image 2.5 | Media.io | Cinematic still frames up to 4K, dramatic film look. |
-| Auto | Media.io | **Smart routing layer.** Picks the best image model from the prompt automatically. Use when the user's intent is open and you don't want to commit to a specific model. |
+| 场景 | 默认模型 | job_type | 降级目标 | job_type |
+| --- | --- | --- | --- | --- |
+| 纯文生图（无参考图） | ToMoviee Lite | `text2image_soul_character` | ToMoviee Lite | `text2image_soul_character` |
+| 图生图（有参考图） | ToMoviee 3.0 Pro | `image2image_media_3.0` | ToMoviee Lite | `image2image_media_1.0` |
+| 视频 | Tomoviee 3.0 | `image2video_tomoviee_3.0` | Tomoviee 2.0 Fast | `image2video_tomoviee_2.0_fast` |
 
-## Video models
+## 2. 精选模型
 
-| Model | Provider | What it's for |
-|---|---|---|
-| Gemini Omni Flash | Google | **Fast multimodal reference-to-video.** Use for prompt-guided video generation from image references and optionally one video reference, especially when the brief benefits from Google's Gemini/Veo-style understanding without making it the default over Seedance 2.0. |
-| Seedance 2.0 | Bytedance | **SOTA all-purpose video up to 4K.** Crisp, consistent identity, multi-shot capable. The default for any serious motion / cinematic / production brief. |
-| Kling 3.0 | Kling | **Cheaper Seedance 2.0 substitute** for single-plane scenes that don't need heavy motion. Multi-shot, audio sync, motion transfer. |
-| Kling 3.0 Turbo | Kling | **Fast Kling option for simple motion.** Text-to-video and single start-frame animation when the user explicitly wants speed, lower cost, or a quick Kling 3.0 variant. |
-| Seedance 1.5 Pro | Bytedance | A budget-friendly Seedance for clean single-take shots. |
-| Cinema Studio Video 3.0 | Media.io | **Top-tier cinema-grade execution.** The pick for film-look briefs at the highest fidelity. |
-| Veo 3.1 Lite | Google | **Fast and cost-effective Veo.** Built for batch and volume work. |
-| Google Veo 3.1 | Google | Ultra-realistic, top-tier cinematic quality. Quality tiers basic/high/ultra. Format set is constrained — verify accepted aspect ratio and duration before submitting. |
-| Google Veo 3 | Google | Reliable cinematic with broad creative range and audio support. |
-| Minimax Hailuo | Hailuo | **Cheap with strong physics.** Solid budget pick when natural-physics motion matters; no audio in current variants. |
-| Wan 2.7 | Wan | Synchronized audio with character-consistent video. The newer Wan release. |
-| Wan 2.6 | Wan | Open-weight, stylized, experimental creative. Cheap option when the brief is intentionally artistic. |
-| Kling 2.6 | Kling | Cinematic motion with advanced physics — earlier Kling release alongside 3.0. |
-| Grok Video 1.5 | xAI | **Bold image-to-video from a required reference frame.** Use when the user wants stylized, anime-like, high-contrast, or experimental motion from one starting image. Requires one `--start-image` or `--image`; duration 2–15s; resolution `480p` or `720p`. |
-| Grok Imagine (video) | xAI | Text and image-to-video with audio support. Worth trying for stylized creative briefs. |
-| Cinema Studio Video | Media.io | Cinematic compositions with dramatic mood. Use Cinema Studio Video 3.0 as the modern default. |
-| Cinema Studio Video v2 | Media.io | Refined cinematic camera and color with genre control. Use Cinema Studio Video 3.0 as the modern default. |
+| 显示名 | job_type | 权限等级* | 输入 | 何时选它 |
+| --- | --- | --- | --- | --- |
+| ToMoviee Lite | `text2image_soul_character` | free | prompt | 纯文生图默认。生产不存在 text2image_media_3.0，这是免费且可直接出图的入口。 |
+| ToMoviee 3.0 Pro | `image2image_media_3.0` | unknown | images, prompt | 图生图默认。角色一致性、服装控制与角色编辑的首选。 |
+| ToMoviee Lite | `image2image_media_1.0` | unknown | images, prompt | 图生图降级目标。权限不足或额度不够时改用它重试。 |
+| GPT Image 2 | `text2image_gpt_image_2` | unknown | prompt | 需要在画面里精准渲染文字、或构图特别复杂时使用。 |
+| GPT Image 2 | `image2image_gpt_image_2` | unknown | images, prompt | 带参考图且需要精准文字渲染时使用。 |
+| Nano Banana Pro | `text2image_banana_2` | unknown | prompt | 动漫、二次元与创意风格。注意显示名是 Nano Banana Pro，不是 Nano Banana 2。 |
+| Nano Banana Pro | `image2image_banana_2` | unknown | images, prompt | 带参考图的动漫与创意风格。显示名是 Nano Banana Pro。 |
+| Tomoviee 3.0 | `image2video_tomoviee_3.0` | unknown | image, prompt | 视频默认。没有特殊诉求时一律用它。 |
+| Tomoviee 2.0 Fast | `image2video_tomoviee_2.0_fast` | unknown | image, prompt | 视频降级目标。用户要速度、要低成本，或权限/额度不足时改用它。 |
+| Seedance 2.5 | `image2video_seedance _2.5` | unknown | image, prompt | 长视频、含音频、电影级质感。job_type 含一个空格，是生产真实取值。 |
+| Seedance 2.5 | `image2video_seedance_2.5_reference_image` | unknown | images, prompt | 多模态参考生视频（最多 50 张参考图），属于 reference2video 模块。 |
+| Kling 3.0 | `image2video_kling_3.0` | unknown | image, prompt | 强物理规律模拟：破碎、流体、碰撞。 |
 
----
+\* 权限等级为**人工标注**，registry 无此字段。`unknown` 表示尚未与产品确认。实际是否扣费一律以 `mediaio generate estimate` 与服务端结果为准，不要照本文件向用户承诺免费。
 
-## 3D models
+## 3. 场景路由
 
-| Model | Provider | What it's for |
-|---|---|---|
-| Multi-Image to 3D | Meshy | **Create an actual 3D asset from object/product reference images.** Takes 1–4 images and returns a 3D mesh/GLB-style asset. Use repeated `--image`; add `--should_texture true` when texture matters. |
+按顺序匹配，**命中即停**，不要继续往下比。
 
----
+### 纯文生图（无参考图）
 
-## Audio models
+| # | 条件 | 选它 | job_type |
+| --- | --- | --- | --- |
+| 1 | 画面里要精准渲染文字，或构图特别复杂 | GPT Image 2 | `text2image_gpt_image_2` |
+| 2 | 动漫、二次元、创意风格 | Nano Banana Pro | `text2image_banana_2` |
+| 3 | 其他所有情况 | ToMoviee Lite | `text2image_soul_character` |
 
-| Model | Provider | What it's for |
-|---|---|---|
-| Seed Audio 1.0 | Bytedance | **Default audio generation.** Use for text-to-audio, sound effects, ambience, foley, impacts, environmental audio, voice-style generations, and music-like audio. Requires `--prompt`; optional references use `--audio-references`/`--image-references`. |
-| Sonilo Music | Sonilo | **Generate music from text.** Use for backing tracks, instrumental beds, jingles, and musical moods. Requires `--prompt` and `--duration`; returns audio and does not take media inputs. |
-| Mirelo Text to Audio | Mirelo | **Generate non-speech audio from text.** Use for sound effects, ambience, foley, impacts, transitions, and environmental sounds. Requires `--prompt` and `--duration`; returns audio and does not take media inputs. |
+### 图生图（有参考图）
 
----
+| # | 条件 | 选它 | job_type |
+| --- | --- | --- | --- |
+| 1 | 画面里要精准渲染文字，或构图特别复杂 | GPT Image 2 | `image2image_gpt_image_2` |
+| 2 | 动漫、二次元、创意风格 | Nano Banana Pro | `image2image_banana_2` |
+| 3 | 其他所有情况（含角色一致性、换装、角色编辑） | ToMoviee 3.0 Pro | `image2image_media_3.0` |
 
-## Text / analysis models
+### 视频
 
-| Model | Provider | What it's for |
-|---|---|---|
-| Virality Predictor (`brain_activity`) | Media.io | **Objective attention proxy for video creative testing.** Scores how effectively a clip captures and sustains attention, useful for hook validation, virality potential, ad review, and product/content focus. Takes a video input and returns a text report with overall score, peak second, sustain, and an Open report link. Raw `.glb` / `.bin` render artifacts stay in JSON/debug output. |
+| # | 条件 | 选它 | job_type |
+| --- | --- | --- | --- |
+| 1 | 多模态参考（多张参考图） | Seedance 2.5 | `image2video_seedance_2.5_reference_image` |
+| 2 | 长视频（约 30 秒）、需要音频、电影级质感 | Seedance 2.5 | `image2video_seedance _2.5` |
+| 3 | 强物理规律模拟：破碎、流体、碰撞 | Kling 3.0 | `image2video_kling_3.0` |
+| 4 | 用户明确要速度或要低成本 | Tomoviee 2.0 Fast | `image2video_tomoviee_2.0_fast` |
+| 5 | 其他所有情况 | Tomoviee 3.0 | `image2video_tomoviee_3.0` |
 
----
+## 4. 降级链
 
-## Picking flow
+触发条件：服务端返回权限不足、额度不足，或用户明确说要免费/更便宜的。
 
-Practical defaults from production use. Match by intent, not surface keyword. When two could apply, the higher entry wins.
+| 场景 | 从 | 降到 | 说明 |
+| --- | --- | --- | --- |
+| 纯文生图（无参考图） | `text2image_soul_character` | `text2image_soul_character` | 默认模型本身即降级目标，无需切换 |
+| 图生图（有参考图） | `image2image_media_3.0` | `image2image_media_1.0` | 换模型后重新 estimate 再提交 |
+| 视频 | `image2video_tomoviee_3.0` | `image2video_tomoviee_2.0_fast` | 换模型后重新 estimate 再提交 |
 
-Core focus first: GPT Image 2 for images/design/text, Seedance 2.0 for video,
-Nano Banana 2/Lite/Pro for character or reference-driven image work. Use Seed Audio 1.0 for audio.
+降级前先按第 0 节规则校验目标仍在线，再重新走一次积分确认。
 
-### Image — pick this default
+## 5. 全量索引
 
-1. **Brand product visual (Pinterest pin, lifestyle, hero banner, ad pack, virtual try-on, restyle)** → use `mediaio-product-photoshoot` instead. NOT this skill.
-2. **Generated product concept / packaging / can / bottle with brand name or label text** → GPT Image 2.
-3. **Aesthetic UGC / fashion editorial / lifestyle character** → Soul 2.0.
-4. **Cinematic still frame** → Soul Cinema.
-5. **Highly characterful, creative character (text-only, distinctive persona, no reference photo)** → Soul Cast.
-6. **Locations / environments / no-people scenes** → Soul Location. Best in class — nothing else matches.
-7. **Logo, icon, vector-like illustration, brand mark, controlled-palette graphic** → Recraft V4.1. Use `--model_type vector` for vector-style output.
-8. **Face edit + complex scene swap (more than outfit change, no heavy filters)** → Seedream 4.5. Seedream 5.0 Lite for the same niche but faster.
-9. **Soul Character (reference id from `mediaio-soul-id`)** → Soul 2.0 for stills; Soul Cinema for cinematic vibe.
-10. **Anime / stylized / non-default look where defaults feel flat** → Flux Kontext Max or Grok Imagine. Worth trying.
-11. **Character or cartoon-style work** → Nano Banana 2; step up to Nano Banana Pro on hard cases.
-12. **Fast Nano Banana reference edit where speed/cost matters** → Nano Banana 2 Lite (`nano_banana_2_lite`).
-13. **Fast and cheap iteration / drafts / LoRA work** → Z Image.
-14. **Default for everything else** → GPT Image 2. High-fidelity general generation, graphic design, UI, banners, anything with on-image text.
-15. **Intent-only request, no preference, want auto-routing** → Auto.
+快照共 109 个生成类模型。本节只回答"这个模型存不存在、叫什么"，不负责选型。
 
-### Video — pick this default
+### text2image — 文生图（12）
 
-1. **Default all-purpose serious video (multi-shot, consistent identity, motion-heavy, production work, image-to-video, 4–15s requests)** → Seedance 2.0. SOTA. Validate this first before falling back.
-2. **Single-plane scene without strong dynamics, cheaper** → Kling 3.0. Substitute for Seedance 2.0 when motion isn't critical; use Kling 3.0 Turbo when the user asks for a faster/lower-cost Kling result or names Turbo.
-3. **Cheap clean shot without cuts, only when the user asks for budget output** → Seedance 1.5 Pro. Do not pick it over Seedance 2.0 just because duration validation looks simpler.
-4. **Image-to-video with explicit first frame** → Kling 3.0 with a start frame, or Seedance 2.0 with a start frame for higher motion.
-5. **Cinema-grade execution (highest fidelity, film look)** → Cinema Studio Video 3.0.
-6. **Cheap with strong physics, audio not needed** → Minimax Hailuo.
-7. **Fast batch / volume** → Veo 3.1 Lite.
-8. **Veo-format-bound work (specific aspect / duration set Veo accepts)** → Veo 3.1; Veo 3 is slightly behind.
-9. **Stylized / animation-style edit-driven work** → Wan 2.7.
-10. **Stylized cheap experimental** → Wan 2.6.
-11. **Multimodal Google reference-to-video from up to 7 images or one video reference** → Gemini Omni Flash (`gemini_omni`). Do not make it the default over Seedance 2.0 for general video.
-12. **Anime / bold-style image-to-video with a start frame** → Grok Video 1.5 (`grok_video_v15`). Requires one `--start-image` or `--image`, duration 2–15s, resolution `480p` or `720p`.
-13. **Anime / bold-style text-to-video or older Grok-style outputs where defaults feel flat** → Grok Imagine (video). Worth trying.
+| job_type | 显示名 | 描述 |
+| --- | --- | --- |
+| `text2image_banana` | Nano Banana | Better visuals & image quality. |
+| `text2image_banana_2` | Nano Banana Pro | Next-gen AI generation model. |
+| `text2image_gpt_image_2` | GPT Image 2 | Superior photorealism, sharp text rendering, and advanced instruction following. |
+| `text2image_nano_banana_2` | Nano Banana 2 | Faster generation, great value, and enhanced creative visual features. |
+| `text2image_nano_banana_2_lite` | Nano Banana 2 Lite | Fastest, most cost-efficient Gemini Image model. |
+| `text2image_seedream_4.0` | Seedream 4.0 | Create images with vivid realism. |
+| `text2image_seedream_5.0_lite` | Seedream 5.0 Lite | More accurate instructions, more intelligent outputs. |
+| `text2image_seedream_5.0_pro` | Seedream 5.0 Pro | A multimodal image generation model that features advanced reasoning, efficient content creation, and professional production capabilities. |
+| `text2image_soul_character` | ToMoviee Lite | Create hyper-realistic characters with unmatched precision and control. |
+| `text2image_tomoviee_2.0` | Tomoviee 2.0 | High-res imagery with fast, precise generation. |
+| `text2image_wan_2.7` | Wan 2.7 | A streamlined AI model that uses Chain-of-Thought reasoning to efficiently generate high-quality images. |
+| `text2image_wan_2.7_pro` | Wan 2.7 Pro | An advanced AI model that utilizes Chain-of-Thought reasoning to generate highly precise, professional-grade images. |
 
-### Video analysis — pick this default
+### image2image — 图生图（13）
 
-1. **Evaluate a finished clip's hook, virality potential, attention, retention, or distraction risk** → Virality Predictor (`brain_activity`). It takes `--video`, needs no prompt, and returns a text score/report plus an Open report link rather than generated media.
+| job_type | 显示名 | 描述 |
+| --- | --- | --- |
+| `image2image_banana` | Nano Banana | Better visuals & image quality. |
+| `image2image_banana_2` | Nano Banana Pro | Next-gen AI generation model. |
+| `image2image_gpt_image_2` | GPT Image 2 | Superior photorealism, sharp text rendering, and advanced instruction following. |
+| `image2image_media_1.0` | ToMoviee Lite | Optimized for superior character and clothing control. |
+| `image2image_media_2.0` | ToMoviee Pro (ex-Media 2.0) | Pro-grade character consistency, precise clothing control, and semantic accuracy. |
+| `image2image_media_3.0` | ToMoviee 3.0 Pro | The ultimate model for character consistency and character editing. |
+| `image2image_nano_banana_2` | Nano Banana 2 | Faster generation, great value, and enhanced creative visual features. |
+| `image2image_nano_banana_2_lite` | Nano Banana 2 Lite | Fastest, most cost-efficient Gemini Image model. |
+| `image2image_seedream_4.0` | Seedream 4.0 | Create images with vivid realism. |
+| `image2image_seedream_5.0_lite` | Seedream 5.0 Lite | More accurate instructions, more intelligent outputs. |
+| `image2image_seedream_5.0_pro` | Seedream 5.0 Pro | A multimodal image generation model that features advanced reasoning, efficient content creation, and professional production capabilities. |
+| `image2image_wan_2.7` | Wan 2.7 | A streamlined AI model that uses Chain-of-Thought reasoning to efficiently generate high-quality images. |
+| `image2image_wan_2.7_pro` | Wan 2.7 Pro | An advanced AI model that utilizes Chain-of-Thought reasoning to generate highly precise, professional-grade images. |
 
-### 3D — pick this default
+### text2video — 文生视频（23）
 
-1. **Create an actual 3D mesh/model/GLB from one or more object/product reference images** → Multi-Image to 3D (`multi_image_to_3d`). Pass 1–4 repeated `--image` flags. Use `--should_texture true` for textured assets; use rigging/animation flags only when the user explicitly wants a rigged or animated asset.
-2. **Create a picture that merely looks like a 3D render** → use an image model instead, usually GPT Image 2 or Nano Banana 2 depending on the brief.
+| job_type | 显示名 | 描述 |
+| --- | --- | --- |
+| `text2image_gemini_omni_flash` | Gemini Omni Flash | High-performance video model for ultra-fast generation, precise editing, and cinematic control. |
+| `text2video_happyhorse_1.0` | HappyHorse 1.0 | A multi-language video generation model with integrated dialogue, ambient sound, and Foley. |
+| `text2video_happyhorse_1.5` | HappyHorse 1.1 | A video model featuring realistic physics, consistent characters, and cinematic outputs. |
+| `text2video_kling_2.5_turbo` | Kling 2.5 Turbo | Max creativity with Exceptional Value. |
+| `text2video_kling_2.6` | Kling 2.6 | See the Sound, Hear the Visual. |
+| `text2video_kling_3.0` | Kling 3.0 | The Only Native 4K AI Video Model For Longer, Consistent, Cinematic Generation. |
+| `text2video_kling_3.0_fast` | Kling 3.0 Turbo | Speed-optimized variant of Kling 3.0. |
+| `text2video_kling_o1` | Kling O1 | All-in-one video model with strong consistency. |
+| `text2video_minimax_2.3` | Hailuo 2.3 | Enhanced quality, smoother and truer. |
+| `text2video_minimax_h3` | MiniMax H3 | Native 2K video generation with perfectly synchronized audio and dialogue. |
+| `text2video_seedance _2.0_mini` | Seedance 2.0 Mini | Low-cost rendering for quick drafts. |
+| `text2video_seedance _2.5` | Seedance 2.5 | Create coherent 30-second videos with up to 50 multimodal references. |
+| `text2video_seedance2.0_fast` | Seedance 2.0 Fast | Rapid creation with balanced cost. |
+| `text2video_tomoviee_2.0` | ToMoviee 2.0 | Realism with creative control. |
+| `text2video_tomoviee_2.5` | Seedance 2.0 | Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync. |
+| `text2video_veo_3.1` | Google Veo 3.1 | Cinematic video with audio. |
+| `text2video_veo_3.1_fast` | Google Veo 3.1 Fast | Speed-optimized video generation. |
+| `text2video_veo_3.1_lite` | Google Veo 3.1 Lite | Fast & affordable drafting. Best for simple shots. |
+| `text2video_veo_3_fast` | Google Veo 3 Fast | Speed-optimized realism. |
+| `text2video_vidu_q3` | Vidu Q3 | Multi-shot, Audio-Video Sync. |
+| `text2video_wan_2.5` | Wan 2.5 | High-quality video generation with smooth, stable frames. |
+| `text2video_wan_2.6` | Wan 2.6 | Multi-scene videos from visual references, with narration. |
+| `text2video_wan_3.0` | Wan 3.0 | Create 30-second stories with expressive character performances. |
 
-### Audio — pick this default
+### image2video — 图生视频（50）
 
-1. **Default audio generation (text-to-audio, voice-style, SFX, ambience, foley, impacts, environmental audio, or music-like audio)** → Seed Audio 1.0 (`seed_audio`). Requires `--prompt`; use optional `--audio-references`/`--image-references` only when references are provided.
-2. **Create music, backing tracks, jingles, or instrumental beds with the specialist legacy music model** → Sonilo Music (`sonilo_music`) only when the user names Sonilo or Seed Audio is not appropriate. Requires `--prompt` and `--duration`.
-3. **Create SFX with the specialist legacy SFX model** → Mirelo Text to Audio (`mirelo_text_to_audio`) only when the user names Mirelo or Seed Audio is not appropriate. Requires `--prompt` and `--duration`.
+| job_type | 显示名 | 描述 |
+| --- | --- | --- |
+| `image2video_gemini_omni_flash` | Gemini Omni Flash | High-performance video model for ultra-fast generation, precise editing, and cinematic control. |
+| `image2video_happyhorse_1.0` | HappyHorse 1.0 | A multi-language video generation model with integrated dialogue, ambient sound, and Foley. |
+| `image2video_happyhorse_1.5` | HappyHorse 1.1 | A video model featuring realistic physics, consistent characters, and cinematic outputs. |
+| `image2video_kling_2.1` | Kling 2.1 | Balanced realism & speed. |
+| `image2video_kling_2.1_head_and_tail` | Kling 2.1 | Balanced realism & speed. |
+| `image2video_kling_2.1_master` | Kling 2.1 Master | Pro-level realism. |
+| `image2video_kling_2.5_turbo` | Kling 2.5 Turbo | Max creativity with Exceptional Value. |
+| `image2video_kling_2.5_turbo_head_and_tail` | Kling 2.5 Turbo | Kling 2.5 Turbo. |
+| `image2video_kling_2.6` | Kling 2.6 | See the Sound, Hear the Visual. |
+| `image2video_kling_3.0` | Kling 3.0 | The Only Native 4K AI Video Model For Longer, Consistent, Cinematic Generation. |
+| `image2video_kling_3.0_fast` | Kling 3.0 Turbo | Speed-optimized variant of Kling 3.0. |
+| `image2video_kling_3.0_head_and_tail` | Kling 3.0 | The Only Native 4K AI Video Model For Longer, Consistent, Cinematic Generation. |
+| `image2video_kling_motion_control_2.6` | Kling Motion Control | Control motion with video references. |
+| `image2video_kling_o1` | Kling O1 | All-in-one video model with strong consistency. |
+| `image2video_kling_o1_head_and_tail` | Kling O1 | All-in-one video model with strong consistency. |
+| `image2video_media_1.0` | ToMoviee 2.0 Pro (ex-Media 1.0) | Master precise motion control with perfect character consistency. |
+| `image2video_minimax_02` | Hailuo 02 | Diverse dynamic motions. |
+| `image2video_minimax_2.3` | Hailuo 2.3 | Enhanced quality, smoother and truer. |
+| `image2video_minimax_h3` | MiniMax H3 | Native 2K video generation with perfectly synchronized audio and dialogue. |
+| `image2video_minimax_h3_head_and_tail` | MiniMax H3 | Native 2K video generation with perfectly synchronized audio and dialogue. |
+| `image2video_seedance _2.0_mini` | Seedance 2.0 Mini | Low-cost rendering for quick drafts. |
+| `image2video_seedance _2.0_mini_head_and_tail` | Seedance 2.0 Mini | Low-cost rendering for quick drafts. |
+| `image2video_seedance _2.5` | Seedance 2.5 | Create coherent 30-second videos with up to 50 multimodal references. |
+| `image2video_seedance _2.5_head_and_tail` | Seedance 2.5 | Create coherent 30-second videos with up to 50 multimodal references. |
+| `image2video_seedance2.0_fast` | Seedance 2.0 Fast | Rapid creation with balanced cost. |
+| `image2video_seedance2.0_fast_head_and_tail` | Seedance 2.0 Fast | Rapid creation with balanced cost. |
+| `image2video_tomoviee_2.0` | ToMoviee 2.0 | Realism with creative control. |
+| `image2video_tomoviee_2.0_fast` | Tomoviee 2.0 Fast | Fastest video generation. Lowest cost. Unlimited access for Pro users. |
+| `image2video_tomoviee_2.5` | Seedance 2.0 | Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync. |
+| `image2video_tomoviee_2.5_head_and_tail` | Seedance 2.0 | Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync. |
+| `image2video_tomoviee_3.0` | Tomoviee 3.0 | Superior character consistency, stronger prompt adherence, and dynamic motion control. |
+| `image2video_tomoviee_4.0` | Tomoviee-V4 Pro | Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation. |
+| `image2video_tomusic_1_0` | ToMusic 1.0 | Create cinematic, character-driven music videos with rich emotion and storytelling. |
+| `image2video_veo_3.1` | Google Veo 3.1 | Cinematic video with audio. |
+| `image2video_veo_3.1_fast` | Google Veo 3.1 Fast | Speed-optimized video generation. |
+| `image2video_veo_3.1_lite` | Google Veo 3.1 Lite | Fast & affordable drafting. Best for simple shots. |
+| `image2video_veo_3.1_lite_head_and_tail` | Google Veo 3.1 Lite | Fast & affordable drafting. Best for simple shots. |
+| `image2video_veo_3_fast` | Google Veo 3 Fast | Speed-optimized realism. |
+| `image2video_vidu_2.0` | Vidu 2.0 | Enhanced narrative realism. |
+| `image2video_vidu_2.0_head_and_tail` | Vidu 2.0 | Enhanced narrative realism. |
+| `image2video_vidu_2.0_reference_image` | Vidu 2.0 | Enhanced narrative realism. |
+| `image2video_vidu_q1` | Vidu Q1 | Scene-driven narrative engine. |
+| `image2video_vidu_q1_head_and_tail` | Vidu Q1 | Scene-driven narrative engine. |
+| `image2video_vidu_q2` | Vidu Q2 | Lively motion, sharp semantics. |
+| `image2video_vidu_q3` | Vidu Q3 | Multi-shot, Audio-Video Sync. |
+| `image2video_wan_2.2` | Wan 2.2 | Sharp detail, vivid colors. |
+| `image2video_wan_2.5` | Wan 2.5 | High-quality video generation with smooth, stable frames. |
+| `image2video_wan_2.6` | Wan 2.6 | Create storyboards and stories. |
+| `image2video_wan_3.0` | Wan 3.0 | Create 30-second stories with expressive character performances. |
+| `image2video_wan_3.0_head_and_tail` | Wan 3.0 | Create 30-second stories with expressive character performances. |
 
-### Things to keep in mind
+### reference2video — 多参考图生视频（11）
 
-- **Don't invent model names.** Run `mediaio model list` if you're unsure — submitting an unknown model returns `unknown model "..."`.
-- **Don't downgrade for schema convenience.** If Seedance 2.0 fits the intent, validate or submit it first; do not choose Seedance 1.5 only because it lists a requested duration more explicitly.
-- **Do not misroute video analysis because the output is text.** A request like "analyze this video" or "score this ad" maps to Virality Predictor (`brain_activity`) when the user provides or references a finished video.
-- **Do not misroute 3D style into 3D asset generation.** `multi_image_to_3d` is for actual mesh/GLB-style assets from reference images. A prompt like "make a 3D render" is usually image generation.
-- **Do not treat audio generation as an audio media input.** `seed_audio`, `mirelo_text_to_audio`, and `sonilo_music` create audio from text. `--audio` is for reference audio on video models like Seedance 2.0 or an alias for `audio_references` on Seed Audio.
-- **Audio reference for Seedance 2.0** comes through the media inputs with role `audio`, not via a separate `generate_audio` flag.
-- **Prompt-only models reject reference media.** Z Image, Recraft V4.1, Soul Cast, Soul Location, and some Wan configs are prompt-only; pass no media flags to them. Virality Predictor is different: it returns text but requires a video input.
-- **Route branded product visuals through `mediaio-product-photoshoot`** — its prompt enhancer adds 10 mode-specific templates on top of GPT Image 2. Direct GPT Image 2 generation here is the right call for everything that isn't a product photoshoot.
-- **For cinema video, prefer Cinema Studio Video 3.0** as the modern default; reach for the earlier Cinema Studio Video variants only when the user names them.
-- **When the user names a specific model, use it.** The defaults above cover the common intents — the rest of the catalog exists for users who know what they want.
+| job_type | 显示名 | 描述 |
+| --- | --- | --- |
+| `image2video_gemini_omni_flash_reference_image` | Gemini Omni Flash | High-performance video model for ultra-fast generation, precise editing, and cinematic control. |
+| `image2video_happyhorse_1.0_reference_image` | HappyHorse 1.0 | A multi-language video generation model with integrated dialogue, ambient sound, and Foley. |
+| `image2video_happyhorse_1.5_reference_image` | HappyHorse 1.1 | A video model featuring realistic physics, consistent characters, and cinematic outputs. |
+| `image2video_kling_3.0_omni_reference_image` | Kling 3.0 Omni | The Only Native 4K AI Video Model With Multimodal Input, Audio, Voice Characters, And Storyboards. |
+| `image2video_kling_o1_reference_image` | Kling O1 | Max creativity with Exceptional Value. |
+| `image2video_minimax_h3_reference_image` | MiniMax H3 | Native 2K video generation with perfectly synchronized audio and dialogue. |
+| `image2video_seedance2.0_fast_reference_image` | Seedance 2.0 Fast | Rapid creation with balanced cost. |
+| `image2video_seedance_2.0_mini_reference_image` | Seedance 2.0 Mini | Low-cost rendering for quick drafts. |
+| `image2video_seedance_2.5_reference_image` | Seedance 2.5 | Create coherent 30-second videos with up to 50 multimodal references. |
+| `image2video_tomoviee_2.5_reference_image` | Seedance 2.0 | Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync. |
+| `image2video_wan_3.0_reference_image` | Wan 3.0 | Create 30-second stories with expressive character performances. |
 
----
+## 6. 已知陷阱
 
-## Media role conventions
+### 6.1 job_type 内含空格（6 条）
 
-Each model accepts a fixed set of media roles or `*_references` params. When unsure, run `mediaio model get <model>` and inspect the schema.
+线上真实配置，**不会修改**。写成不带空格的版本会直接 `unknown job type`。shell 里必须加引号。
 
-| Model | Accepted media roles |
-|---|---|
-| Gemini Omni Flash | `image_references` (0–7) and `video_references` (0–1); with a video reference, max 5 image references |
-| Nano Banana 2 Lite | `image_references` (0–14); `aspect_ratio=auto` requires at least one image reference |
-| Seedance 2.0 | `image`, `start_image`, `end_image`, `video`, `audio` |
-| Kling 3.0 | `start_image`, `end_image` |
-| Kling 3.0 Turbo | `start_image` (max 1; CLI also accepts `--image`) |
-| Kling 2.6 | `start_image` |
-| Grok Video 1.5 | `start_image` (required max 1; CLI also accepts `--image`) |
-| Veo 3.1 | `start_image` (max 1) |
-| Veo 3 | `image` (max 1) |
-| Virality Predictor (`brain_activity`) | `video` |
-| Multi-Image to 3D | `image` (1–4) |
-| Seed Audio 1.0 | `audio_references` or `image_references` (optional; mutually exclusive) |
-| Mirelo Text to Audio | (no media — pass `--prompt`) |
-| Sonilo Music | (no media — pass `--prompt` and `--duration`) |
-| Most image models | `image` (1+) |
-| Z Image, Recraft V4.1, Soul Cast, Soul Location | (no media — prompt-only) |
-
-For simple image-to-video, the `start_image` role is what you want. For pure video models that only declare `image`, the `image` flag is auto-remapped to `start_image` by the CLI.
-
-## Aspect ratios and durations
-
-These are model-specific. The CLI clamps unsupported values to the nearest allowed one (with a `Note: adjustments applied` warning) when the model declares a closed set. When in doubt:
+| job_type | 显示名 |
+| --- | --- |
+| `image2video_seedance _2.0_mini` | Seedance 2.0 Mini |
+| `image2video_seedance _2.0_mini_head_and_tail` | Seedance 2.0 Mini |
+| `image2video_seedance _2.5` | Seedance 2.5 |
+| `image2video_seedance _2.5_head_and_tail` | Seedance 2.5 |
+| `text2video_seedance _2.0_mini` | Seedance 2.0 Mini |
+| `text2video_seedance _2.5` | Seedance 2.5 |
 
 ```bash
-mediaio model get <model>
+mediaio model get "image2video_seedance _2.0_mini"
 ```
 
-Common patterns:
+### 6.2 前缀与 fun_module 不一致（12 条）
 
-- **Seedance 2.0** image: `auto`, `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16`. Duration 4–15s. Resolution `480p`, `720p`, `1080p`, or `4k`. Optional `--bitrate_mode standard|high`, default `standard`.
-- **Kling 3.0**: `16:9`, `9:16`, `1:1`. Duration 3–15s. Modes `pro`/`std`. Sound `on`/`off`.
-- **Kling 3.0 Turbo**: `16:9`, `9:16`, `1:1`. Duration 3–15s. Resolution `720p` or `1080p`. Optional single `start_image` only.
-- **Soul 2.0**: `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`. Quality `1.5k` or `2k` maps to backend `720p`/`1080p`.
-- **Soul Cinema**: same as Soul 2.0 plus `21:9`. Quality `1.5k` or `2k`.
-- **Soul Location**: `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9`, `9:21`. No quality/resolution selector; dimensions are fixed by aspect ratio.
-- **Veo 3.1**: `16:9` or `9:16`. Duration `4`, `6`, or `8` only. Quality `basic`/`high`/`ultra`.
+不要根据 job_type 前缀推断它属于哪个模块，以本表为准。
 
-## When you submit an unknown value
+| job_type | 实际 fun_module |
+| --- | --- |
+| `image2video_gemini_omni_flash_reference_image` | reference2video |
+| `image2video_happyhorse_1.0_reference_image` | reference2video |
+| `image2video_happyhorse_1.5_reference_image` | reference2video |
+| `image2video_kling_3.0_omni_reference_image` | reference2video |
+| `image2video_kling_o1_reference_image` | reference2video |
+| `image2video_minimax_h3_reference_image` | reference2video |
+| `image2video_seedance2.0_fast_reference_image` | reference2video |
+| `image2video_seedance_2.0_mini_reference_image` | reference2video |
+| `image2video_seedance_2.5_reference_image` | reference2video |
+| `image2video_tomoviee_2.5_reference_image` | reference2video |
+| `image2video_wan_3.0_reference_image` | reference2video |
+| `text2image_gemini_omni_flash` | text2video |
 
-The CLI reports two kinds of feedback:
+### 6.3 显示名重名（37 组）
 
-- **Adjustments** — a non-fatal coercion. E.g. you passed `aspect_ratio=99:99` and the model accepts a closed set; the CLI picks the closest match and continues. The adjustments map is included in the response.
-- **Validation error** — a fatal mismatch. E.g. an unknown declared parameter, or a media role the model doesn't accept. The CLI returns an error and does not submit.
+**显示名不是主键。** 用户说出一个重名显示名时，列出候选让他选，不要自己挑第一个。
+
+| 显示名 | 对应 job_type |
+| --- | --- |
+| GPT Image 2 | `image2image_gpt_image_2`<br>`text2image_gpt_image_2` |
+| Gemini Omni Flash | `image2video_gemini_omni_flash`<br>`image2video_gemini_omni_flash_reference_image`<br>`text2image_gemini_omni_flash` |
+| Google Veo 3 Fast | `image2video_veo_3_fast`<br>`text2video_veo_3_fast` |
+| Google Veo 3.1 | `image2video_veo_3.1`<br>`text2video_veo_3.1` |
+| Google Veo 3.1 Fast | `image2video_veo_3.1_fast`<br>`text2video_veo_3.1_fast` |
+| Google Veo 3.1 Lite | `image2video_veo_3.1_lite`<br>`image2video_veo_3.1_lite_head_and_tail`<br>`text2video_veo_3.1_lite` |
+| Hailuo 2.3 | `image2video_minimax_2.3`<br>`text2video_minimax_2.3` |
+| HappyHorse 1.0 | `image2video_happyhorse_1.0`<br>`image2video_happyhorse_1.0_reference_image`<br>`text2video_happyhorse_1.0` |
+| HappyHorse 1.1 | `image2video_happyhorse_1.5`<br>`image2video_happyhorse_1.5_reference_image`<br>`text2video_happyhorse_1.5` |
+| Kling 2.1 | `image2video_kling_2.1`<br>`image2video_kling_2.1_head_and_tail` |
+| Kling 2.5 Turbo | `image2video_kling_2.5_turbo`<br>`image2video_kling_2.5_turbo_head_and_tail`<br>`text2video_kling_2.5_turbo` |
+| Kling 2.6 | `image2video_kling_2.6`<br>`text2video_kling_2.6` |
+| Kling 3.0 | `image2video_kling_3.0`<br>`image2video_kling_3.0_head_and_tail`<br>`text2video_kling_3.0` |
+| Kling 3.0 Turbo | `image2video_kling_3.0_fast`<br>`text2video_kling_3.0_fast` |
+| Kling O1 | `image2video_kling_o1`<br>`image2video_kling_o1_head_and_tail`<br>`image2video_kling_o1_reference_image`<br>`text2video_kling_o1` |
+| MiniMax H3 | `image2video_minimax_h3`<br>`image2video_minimax_h3_head_and_tail`<br>`image2video_minimax_h3_reference_image`<br>`text2video_minimax_h3` |
+| Nano Banana | `image2image_banana`<br>`text2image_banana` |
+| Nano Banana 2 | `image2image_nano_banana_2`<br>`text2image_nano_banana_2` |
+| Nano Banana 2 Lite | `image2image_nano_banana_2_lite`<br>`text2image_nano_banana_2_lite` |
+| Nano Banana Pro | `image2image_banana_2`<br>`text2image_banana_2` |
+| Seedance 2.0 | `image2video_tomoviee_2.5`<br>`image2video_tomoviee_2.5_head_and_tail`<br>`image2video_tomoviee_2.5_reference_image`<br>`text2video_tomoviee_2.5` |
+| Seedance 2.0 Fast | `image2video_seedance2.0_fast`<br>`image2video_seedance2.0_fast_head_and_tail`<br>`image2video_seedance2.0_fast_reference_image`<br>`text2video_seedance2.0_fast` |
+| Seedance 2.0 Mini | `image2video_seedance _2.0_mini`<br>`image2video_seedance _2.0_mini_head_and_tail`<br>`image2video_seedance_2.0_mini_reference_image`<br>`text2video_seedance _2.0_mini` |
+| Seedance 2.5 | `image2video_seedance _2.5`<br>`image2video_seedance _2.5_head_and_tail`<br>`image2video_seedance_2.5_reference_image`<br>`text2video_seedance _2.5` |
+| Seedream 4.0 | `image2image_seedream_4.0`<br>`text2image_seedream_4.0` |
+| Seedream 5.0 Lite | `image2image_seedream_5.0_lite`<br>`text2image_seedream_5.0_lite` |
+| Seedream 5.0 Pro | `image2image_seedream_5.0_pro`<br>`text2image_seedream_5.0_pro` |
+| ToMoviee 2.0 | `image2video_tomoviee_2.0`<br>`text2video_tomoviee_2.0` |
+| ToMoviee Lite | `image2image_media_1.0`<br>`text2image_soul_character` |
+| Vidu 2.0 | `image2video_vidu_2.0`<br>`image2video_vidu_2.0_head_and_tail`<br>`image2video_vidu_2.0_reference_image` |
+| Vidu Q1 | `image2video_vidu_q1`<br>`image2video_vidu_q1_head_and_tail` |
+| Vidu Q3 | `image2video_vidu_q3`<br>`text2video_vidu_q3` |
+| Wan 2.5 | `image2video_wan_2.5`<br>`text2video_wan_2.5` |
+| Wan 2.6 | `image2video_wan_2.6`<br>`text2video_wan_2.6` |
+| Wan 2.7 | `image2image_wan_2.7`<br>`text2image_wan_2.7` |
+| Wan 2.7 Pro | `image2image_wan_2.7_pro`<br>`text2image_wan_2.7_pro` |
+| Wan 3.0 | `image2video_wan_3.0`<br>`image2video_wan_3.0_head_and_tail`<br>`image2video_wan_3.0_reference_image`<br>`text2video_wan_3.0` |
+
+### 6.4 显示名与 job_type 语义错位
+
+历史原因造成，`uni_fun_code` 不可改。**只能由显示名查 job_type，不能由 job_type 反推显示名。** 典型例子：
+
+| job_type | 显示名 | 容易误判成 |
+| --- | --- | --- |
+| `image2image_banana_2` | Nano Banana Pro | Nano Banana 2 |
+| `text2image_banana_2` | Nano Banana Pro | Nano Banana 2 |
+| `text2image_soul_character` | ToMoviee Lite | Soul / 角色模型 |
+| `image2video_tomoviee_2.5` | Seedance 2.0 | ToMoviee 2.5 |
+
+## 7. 回源指令速查
+
+```bash
+# 按关键词找模型（第 0 节条件 1 才允许）
+mediaio model list --grep seedance --output json
+
+# 只看某个模块
+mediaio model list --module image2video --output json
+
+# 取参数 schema（每次选型后都要跑）
+mediaio model get image2image_media_3.0
+
+# job_type 含空格时必须加引号
+mediaio model get "image2video_seedance _2.5"
+```
+
+> `model list` 的默认文本输出只有 `job_type / type / description`，**不含显示名**；需要显示名时必须加 `--output json` 读 `model` 字段。
+
+---
+
+<!-- snapshot_digest: d19322022f5e9c7d -->

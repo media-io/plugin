@@ -1,17 +1,22 @@
 ---
 name: mediaio-generate
 metadata:
-  version: "0.2.5"
+  version: "0.3.0"
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
-  reference-to-video and published workflows that appear in the live
-  `mediaio model list` or `mediaio workflow list`. Effects may be used only
-  when their parameters have been independently verified because the current
-  CLI exposes `effect list` but not `effect get`.
-  Always discover the exact job type and schema before submission. Every
-  submission spends the user's credits, so always run `generate estimate`,
-  show the cost to the user, and stop until they explicitly approve.
+  reference-to-video and published workflows.
+  Select the model from the bundled static catalog
+  (`references/model-catalog.md`), which is generated from the production
+  registry; only fall back to `mediaio model list` on the triggers listed in
+  the discovery guardrail. Copy every `job_type` byte for byte — some contain
+  a literal space, and display names often do not match the identifier.
+  Effects may be used only when their parameters have been independently
+  verified because the current CLI exposes `effect list` but not `effect get`.
+  Always confirm the parameter schema with `model get` before submission.
+  Every submission spends the user's credits, so always run
+  `generate estimate`, show the cost to the user, and stop until they
+  explicitly approve.
   Use the human-readable discovery output, upload local files before
   generation, submit with `generate create`, wait with the separate
   `generate wait` command, and retrieve result files with `generate download`
@@ -46,8 +51,8 @@ Before any generation command:
 1. Be concise. Do not paste raw registry output or full response payloads unless the user asks for diagnostics.
 2. When `mediaio version` surfaces an update hint, explicitly route the user back to `mediaio upgrade codex` before any generation workflow continues. The skill should not silently proceed past an update warning.
 3. Do not expose access tokens, credentials, prompts from unrelated tasks, or request debug payloads.
-4. Don't batch-ask. Pick a sane default model and ask one thing at a time only if genuinely missing.
-5. Never invent a job type or parameter. Discover both from the current CLI.
+4. Don't batch-ask. Pick a sane default model from `references/model-catalog.md` and ask one thing at a time only if genuinely missing.
+5. Never invent a job type or parameter. Take the job type from the static catalog and the parameters from `model get`.
 6. Submit first, read the returned `task_id=<id>` line, then call `mediaio generate wait <task_id>`. The current `generate create` command does not accept `--wait`.
 7. Never spend credits without an explicit user approval in the conversation. See the credit confirmation gate below; it outranks every other rule in this skill.
 
@@ -140,23 +145,57 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 
 `uni_fun_code` is the only field that identifies which model produced a task. The raw `algorithm` field is `combo_alg` for every workflow task, so it is omitted from brief output unless it holds a real value (`tts`, `agent2mv`, ...). Likewise `generate list --algorithm` filters by algorithm channel, not by model.
 
-## Discovery guardrail
+## Discovery guardrail — static catalog first
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable by default; pass `--output json` for a machine-readable form. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
+`references/model-catalog.md` is a generated snapshot of the production registry. **It is the default source for model selection. Do not run `mediaio model list` for routine routing.**
 
-Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
+### Default path (no `model list`)
+
+1. Read `references/model-catalog.md`.
+2. Pick the `job_type` from its section 3 routing table — match top-down and **stop at the first hit**. If the user gave no source image, use the text-to-image table; if they attached one, use the image-to-image table.
+3. Run `mediaio model get <job_type>` for the parameter schema. This is a required pre-submission step, not a discovery step: the catalog never promises parameters, and you must not infer them from it.
+4. Continue with the normal upload / estimate / submit / wait flow.
+
+### When you may fall back to `model list`
+
+Only these cases. Nothing else qualifies.
+
+| Trigger | Action |
+| --- | --- |
+| The model the user named is not in catalog sections 2 or 5 | `mediaio model list --grep <keyword> --output json` |
+| A submission returned `unknown job type` | Full `model list`, reselect, and tell the user the catalog may be stale |
+| The user explicitly asks to see all/latest models, or whether something new exists | Full `model list`, grouped by type/module |
+| You are about to degrade and need to confirm the fallback is still live | `mediaio model list --grep` on the fallback `job_type` |
+| The catalog's `generated_at` is more than 30 days old, or its `catalog_schema_version` is not 1 | Full `model list`, and report that the catalog needs re-syncing. **This check is local — do not issue a request to test freshness** |
+| `references/model-catalog.md` is missing or its metadata table is corrupt | Fall back to pure runtime discovery |
+
+These are **not** reasons to call `model list`: routine intent routing, picking the default model, "let me just double-check", uncertainty about parameters (that is `model get`), or a `job_type` that looks misspelled.
+
+### Identifier rules (hard requirements)
+
+1. **Copy `job_type` byte for byte.** Never trim it, change its case, or "fix" a name that looks wrong. Six production job types contain a literal space, for example `image2video_seedance _2.5`. Quote them in the shell: `mediaio model get "image2video_seedance _2.5"`.
+2. **Map display name → `job_type` only, never the reverse.** Display names are frequently unrelated to the identifier: `image2image_banana_2` is *Nano Banana Pro*, while *Nano Banana 2* is `image2image_nano_banana_2`. Look the name up in catalog section 5; do not assemble an identifier from what the user said.
+3. **Display names are not unique** — 37 groups collide. When a name matches several `job_type` values, list the candidates and let the user choose.
+4. **Echo both when you report your choice**: `显示名（job_type）`.
+5. The catalog's permission tier column is a manual annotation. Never promise the user a model is free based on it; the cost comes from `generate estimate`.
+
+### Workflows and effects
+
+Workflows and effects are separate discovery views not covered by the static catalog, but they are submitted through the same command: `mediaio generate create <job_type> ...`. Use `mediaio workflow list` / `mediaio effect list` for them. The current CLI has no `effect get`; never guess effect parameters from the list summary.
+
+`mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 ## Workflow — generic generation
 
-1. **Discover.** Run one of:
+1. **Select.** For models, read `references/model-catalog.md` and take the `job_type` from its routing table — see the discovery guardrail above. Run a list command only for a workflow/effect, or when one of the fallback triggers applies:
 
    ```bash
-   mediaio model list
    mediaio workflow list
    mediaio effect list
+   mediaio model list --grep <keyword> --output json   # only on a listed trigger
    ```
 
-2. **Inspect.** Use the exact identifier from the first column:
+2. **Inspect.** Use the exact identifier, copied verbatim (quote it if it contains a space):
 
    ```bash
    mediaio model get <job_type>
@@ -250,13 +289,12 @@ For image-to-image GPT Image 2, upload each source first and use the live repeat
 
 ## Current capability boundary
 
-Only the command families printed by the current `mediaio --help` output are executable. The migrated reference set also describes future or retired surfaces that are not part of the current BIN:
+Only the command families printed by the current `mediaio --help` output are executable, and only the `job_type` values present in `references/model-catalog.md` (or returned by live discovery) exist. The migrated reference set also describes surfaces that are not part of the current BIN:
 
 - workflow-specific create helpers
-- optional JSON output for model/workflow/effect discovery or schema commands
 - one-shot create-and-wait flags
 - automatic upload of local paths passed directly to generation parameters
-- hard-coded 3D, audio, Virality Predictor, Soul ID, product-photoshoot, game-generation, or video-explainer routes absent from live discovery
+- 3D, audio, Virality Predictor, Soul ID, product-photoshoot, game-generation, or video-explainer routes — the production registry has no `fun_module` for these at all
 
 ## Errors
 
@@ -266,7 +304,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 - `--skip-estimate is only allowed on an interactive terminal` → drop the flag so the cost is printed.
 - `--json is not supported; use --output json instead` or `flag provided but not defined: -json` → drop `--json`; you should not be passing an output flag at all.
 - `flag provided but not defined: -output` or `-download` → the installed build predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture any URL with a shell variable instead of transcribing it.
-- `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
+- `unknown job type` → most often the identifier was altered. Re-read it from `references/model-catalog.md` and copy it byte for byte; check section 6.1 in case it contains a space. Only if it is genuinely absent from the catalog, rerun the relevant live list and use its exact first-column identifier, and tell the user the catalog looks stale.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.
 - `InvalidAccessKeyId`, `SignatureDoesNotMatch`, or an HTTP 403 from the storage host while downloading → the URL was altered or has expired. Do not try to repair it. Re-run `mediaio generate download <task_id>`.
 - `is not downloadable yet: status=...` → the task has not reached a successful terminal state; run `generate wait` first and read `reason_code`/`reason_label`.
@@ -279,6 +317,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 
 Load references on demand:
 
+- `references/model-catalog.md` **before every model selection** — generated from the production registry; carries the defaults, routing rules, fallback chain, the full model index, and the known identifier traps
 - `references/prompt-engineering.md` for prompt-writing guidance
 - `references/media-inputs.md` when the user provides local or uploaded media
 - `references/workflows.md` for a job type returned by live workflow discovery
