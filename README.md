@@ -71,10 +71,17 @@ Current execution contract:
 ```text
 mediaio model|workflow|effect list
   → mediaio model|workflow get <job_type>
-  → mediaio generate create <job_type> [--param value]...
+  → mediaio generate create <job_type> [--param value]... --yes
   → mediaio generate wait <task_id>
   → mediaio generate download <task_id> --output-dir <dir>
 ```
+
+`--yes` is required because a non-interactive host cannot answer the CLI's
+credit prompt. By default `generate create` prints no cost at all, so a routine
+generation never puts a credit figure in front of a user who did not ask for
+one. `--show-credit` adds the estimate and the balance, and `generate estimate`
+prices a job without submitting it. When to use each — and when to stop for an
+approval — is owned by `skills/mediaio-generate/SKILL.md`.
 
 `generate` subcommands default to `brief` output, so the skill passes no
 `--output` flag. Result files are fetched with `generate download`, which keeps
