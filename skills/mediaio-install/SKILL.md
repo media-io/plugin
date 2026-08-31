@@ -1,7 +1,7 @@
 ---
 name: mediaio-install
 metadata:
-  version: "0.2.2"
+  version: "0.2.6"
 description: |
   Install or update the shared Media.io CLI and plugin manifests for Codex or Claude Code. Use when the user asks to set up Media.io, refresh an existing installation, or align the installed plugin with the checked-out skills. Do not use for image or video generation tasks.
 ---

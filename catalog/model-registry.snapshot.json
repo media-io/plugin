@@ -1,0 +1,775 @@
+{
+  "catalog_schema_version": 1,
+  "generated_at": "2026-08-27T13:21:28.571Z",
+  "environment": "prod",
+  "vapi": "https://vapi.media.io",
+  "cli_version": "dev",
+  "source_command": "mediaio --production-env prod model list --output json",
+  "model_count": 109,
+  "snapshot_digest": "d19322022f5e9c7d",
+  "models": [
+    {
+      "job_type": "image2image_banana",
+      "display_name": "Nano Banana",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Better visuals & image quality."
+    },
+    {
+      "job_type": "image2image_banana_2",
+      "display_name": "Nano Banana Pro",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Next-gen AI generation model."
+    },
+    {
+      "job_type": "image2image_gpt_image_2",
+      "display_name": "GPT Image 2",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Superior photorealism, sharp text rendering, and advanced instruction following."
+    },
+    {
+      "job_type": "image2image_media_1.0",
+      "display_name": "ToMoviee Lite",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Optimized for superior character and clothing control."
+    },
+    {
+      "job_type": "image2image_media_2.0",
+      "display_name": "ToMoviee Pro (ex-Media 2.0)",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Pro-grade character consistency, precise clothing control, and semantic accuracy."
+    },
+    {
+      "job_type": "image2image_media_3.0",
+      "display_name": "ToMoviee 3.0 Pro",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "The ultimate model for character consistency and character editing."
+    },
+    {
+      "job_type": "image2image_nano_banana_2",
+      "display_name": "Nano Banana 2",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Faster generation, great value, and enhanced creative visual features."
+    },
+    {
+      "job_type": "image2image_nano_banana_2_lite",
+      "display_name": "Nano Banana 2 Lite",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Fastest, most cost-efficient Gemini Image model."
+    },
+    {
+      "job_type": "image2image_seedream_4.0",
+      "display_name": "Seedream 4.0",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Create images with vivid realism."
+    },
+    {
+      "job_type": "image2image_seedream_5.0_lite",
+      "display_name": "Seedream 5.0 Lite",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "More accurate instructions, more intelligent outputs."
+    },
+    {
+      "job_type": "image2image_seedream_5.0_pro",
+      "display_name": "Seedream 5.0 Pro",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "A multimodal image generation model that features advanced reasoning, efficient content creation, and professional production capabilities."
+    },
+    {
+      "job_type": "image2image_wan_2.7",
+      "display_name": "Wan 2.7",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "A streamlined AI model that uses Chain-of-Thought reasoning to efficiently generate high-quality images."
+    },
+    {
+      "job_type": "image2image_wan_2.7_pro",
+      "display_name": "Wan 2.7 Pro",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "An advanced AI model that utilizes Chain-of-Thought reasoning to generate highly precise, professional-grade images."
+    },
+    {
+      "job_type": "image2video_gemini_omni_flash",
+      "display_name": "Gemini Omni Flash",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "High-performance video model for ultra-fast generation, precise editing, and cinematic control."
+    },
+    {
+      "job_type": "image2video_happyhorse_1.0",
+      "display_name": "HappyHorse 1.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "A multi-language video generation model with integrated dialogue, ambient sound, and Foley."
+    },
+    {
+      "job_type": "image2video_happyhorse_1.5",
+      "display_name": "HappyHorse 1.1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "A video model featuring realistic physics, consistent characters, and cinematic outputs."
+    },
+    {
+      "job_type": "image2video_kling_2.1",
+      "display_name": "Kling 2.1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Balanced realism & speed."
+    },
+    {
+      "job_type": "image2video_kling_2.1_head_and_tail",
+      "display_name": "Kling 2.1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Balanced realism & speed."
+    },
+    {
+      "job_type": "image2video_kling_2.1_master",
+      "display_name": "Kling 2.1 Master",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Pro-level realism."
+    },
+    {
+      "job_type": "image2video_kling_2.5_turbo",
+      "display_name": "Kling 2.5 Turbo",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Max creativity with Exceptional Value."
+    },
+    {
+      "job_type": "image2video_kling_2.5_turbo_head_and_tail",
+      "display_name": "Kling 2.5 Turbo",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Kling 2.5 Turbo."
+    },
+    {
+      "job_type": "image2video_kling_2.6",
+      "display_name": "Kling 2.6",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "See the Sound, Hear the Visual."
+    },
+    {
+      "job_type": "image2video_kling_3.0",
+      "display_name": "Kling 3.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "The Only Native 4K AI Video Model For Longer, Consistent, Cinematic Generation."
+    },
+    {
+      "job_type": "image2video_kling_3.0_fast",
+      "display_name": "Kling 3.0 Turbo",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Speed-optimized variant of Kling 3.0."
+    },
+    {
+      "job_type": "image2video_kling_3.0_head_and_tail",
+      "display_name": "Kling 3.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "The Only Native 4K AI Video Model For Longer, Consistent, Cinematic Generation."
+    },
+    {
+      "job_type": "image2video_kling_motion_control_2.6",
+      "display_name": "Kling Motion Control",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Control motion with video references."
+    },
+    {
+      "job_type": "image2video_kling_o1",
+      "display_name": "Kling O1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "All-in-one video model with strong consistency."
+    },
+    {
+      "job_type": "image2video_kling_o1_head_and_tail",
+      "display_name": "Kling O1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "All-in-one video model with strong consistency."
+    },
+    {
+      "job_type": "image2video_media_1.0",
+      "display_name": "ToMoviee 2.0 Pro (ex-Media 1.0)",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Master precise motion control with perfect character consistency."
+    },
+    {
+      "job_type": "image2video_minimax_02",
+      "display_name": "Hailuo 02",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Diverse dynamic motions."
+    },
+    {
+      "job_type": "image2video_minimax_2.3",
+      "display_name": "Hailuo 2.3",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Enhanced quality, smoother and truer."
+    },
+    {
+      "job_type": "image2video_minimax_h3",
+      "display_name": "MiniMax H3",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Native 2K video generation with perfectly synchronized audio and dialogue."
+    },
+    {
+      "job_type": "image2video_minimax_h3_head_and_tail",
+      "display_name": "MiniMax H3",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Native 2K video generation with perfectly synchronized audio and dialogue."
+    },
+    {
+      "job_type": "image2video_seedance _2.0_mini",
+      "display_name": "Seedance 2.0 Mini",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Low-cost rendering for quick drafts."
+    },
+    {
+      "job_type": "image2video_seedance _2.0_mini_head_and_tail",
+      "display_name": "Seedance 2.0 Mini",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Low-cost rendering for quick drafts."
+    },
+    {
+      "job_type": "image2video_seedance _2.5",
+      "display_name": "Seedance 2.5",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Create coherent 30-second videos with up to 50 multimodal references."
+    },
+    {
+      "job_type": "image2video_seedance _2.5_head_and_tail",
+      "display_name": "Seedance 2.5",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Create coherent 30-second videos with up to 50 multimodal references."
+    },
+    {
+      "job_type": "image2video_seedance2.0_fast",
+      "display_name": "Seedance 2.0 Fast",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Rapid creation with balanced cost."
+    },
+    {
+      "job_type": "image2video_seedance2.0_fast_head_and_tail",
+      "display_name": "Seedance 2.0 Fast",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Rapid creation with balanced cost."
+    },
+    {
+      "job_type": "image2video_tomoviee_2.0",
+      "display_name": "ToMoviee 2.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Realism with creative control."
+    },
+    {
+      "job_type": "image2video_tomoviee_2.0_fast",
+      "display_name": "Tomoviee 2.0 Fast",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Fastest video generation. Lowest cost. Unlimited access for Pro users."
+    },
+    {
+      "job_type": "image2video_tomoviee_2.5",
+      "display_name": "Seedance 2.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync."
+    },
+    {
+      "job_type": "image2video_tomoviee_2.5_head_and_tail",
+      "display_name": "Seedance 2.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync."
+    },
+    {
+      "job_type": "image2video_tomoviee_3.0",
+      "display_name": "Tomoviee 3.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Superior character consistency, stronger prompt adherence, and dynamic motion control."
+    },
+    {
+      "job_type": "image2video_tomoviee_4.0",
+      "display_name": "Tomoviee-V4 Pro",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation."
+    },
+    {
+      "job_type": "image2video_tomusic_1_0",
+      "display_name": "ToMusic 1.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Create cinematic, character-driven music videos with rich emotion and storytelling."
+    },
+    {
+      "job_type": "image2video_veo_3.1",
+      "display_name": "Google Veo 3.1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Cinematic video with audio."
+    },
+    {
+      "job_type": "image2video_veo_3.1_fast",
+      "display_name": "Google Veo 3.1 Fast",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Speed-optimized video generation."
+    },
+    {
+      "job_type": "image2video_veo_3.1_lite",
+      "display_name": "Google Veo 3.1 Lite",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Fast & affordable drafting. Best for simple shots."
+    },
+    {
+      "job_type": "image2video_veo_3.1_lite_head_and_tail",
+      "display_name": "Google Veo 3.1 Lite",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Fast & affordable drafting. Best for simple shots."
+    },
+    {
+      "job_type": "image2video_veo_3_fast",
+      "display_name": "Google Veo 3 Fast",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Speed-optimized realism."
+    },
+    {
+      "job_type": "image2video_vidu_2.0",
+      "display_name": "Vidu 2.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Enhanced narrative realism."
+    },
+    {
+      "job_type": "image2video_vidu_2.0_head_and_tail",
+      "display_name": "Vidu 2.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Enhanced narrative realism."
+    },
+    {
+      "job_type": "image2video_vidu_2.0_reference_image",
+      "display_name": "Vidu 2.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Enhanced narrative realism."
+    },
+    {
+      "job_type": "image2video_vidu_q1",
+      "display_name": "Vidu Q1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Scene-driven narrative engine."
+    },
+    {
+      "job_type": "image2video_vidu_q1_head_and_tail",
+      "display_name": "Vidu Q1",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Scene-driven narrative engine."
+    },
+    {
+      "job_type": "image2video_vidu_q2",
+      "display_name": "Vidu Q2",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Lively motion, sharp semantics."
+    },
+    {
+      "job_type": "image2video_vidu_q3",
+      "display_name": "Vidu Q3",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Multi-shot, Audio-Video Sync."
+    },
+    {
+      "job_type": "image2video_wan_2.2",
+      "display_name": "Wan 2.2",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Sharp detail, vivid colors."
+    },
+    {
+      "job_type": "image2video_wan_2.5",
+      "display_name": "Wan 2.5",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "High-quality video generation with smooth, stable frames."
+    },
+    {
+      "job_type": "image2video_wan_2.6",
+      "display_name": "Wan 2.6",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Create storyboards and stories."
+    },
+    {
+      "job_type": "image2video_wan_3.0",
+      "display_name": "Wan 3.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Create 30-second stories with expressive character performances."
+    },
+    {
+      "job_type": "image2video_wan_3.0_head_and_tail",
+      "display_name": "Wan 3.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Create 30-second stories with expressive character performances."
+    },
+    {
+      "job_type": "image2video_gemini_omni_flash_reference_image",
+      "display_name": "Gemini Omni Flash",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "High-performance video model for ultra-fast generation, precise editing, and cinematic control."
+    },
+    {
+      "job_type": "image2video_happyhorse_1.0_reference_image",
+      "display_name": "HappyHorse 1.0",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "A multi-language video generation model with integrated dialogue, ambient sound, and Foley."
+    },
+    {
+      "job_type": "image2video_happyhorse_1.5_reference_image",
+      "display_name": "HappyHorse 1.1",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "A video model featuring realistic physics, consistent characters, and cinematic outputs."
+    },
+    {
+      "job_type": "image2video_kling_3.0_omni_reference_image",
+      "display_name": "Kling 3.0 Omni",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "The Only Native 4K AI Video Model With Multimodal Input, Audio, Voice Characters, And Storyboards."
+    },
+    {
+      "job_type": "image2video_kling_o1_reference_image",
+      "display_name": "Kling O1",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Max creativity with Exceptional Value."
+    },
+    {
+      "job_type": "image2video_minimax_h3_reference_image",
+      "display_name": "MiniMax H3",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Native 2K video generation with perfectly synchronized audio and dialogue."
+    },
+    {
+      "job_type": "image2video_seedance2.0_fast_reference_image",
+      "display_name": "Seedance 2.0 Fast",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Rapid creation with balanced cost."
+    },
+    {
+      "job_type": "image2video_seedance_2.0_mini_reference_image",
+      "display_name": "Seedance 2.0 Mini",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Low-cost rendering for quick drafts."
+    },
+    {
+      "job_type": "image2video_seedance_2.5_reference_image",
+      "display_name": "Seedance 2.5",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Create coherent 30-second videos with up to 50 multimodal references."
+    },
+    {
+      "job_type": "image2video_tomoviee_2.5_reference_image",
+      "display_name": "Seedance 2.0",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync."
+    },
+    {
+      "job_type": "image2video_wan_3.0_reference_image",
+      "display_name": "Wan 3.0",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Create 30-second stories with expressive character performances."
+    },
+    {
+      "job_type": "text2image_banana",
+      "display_name": "Nano Banana",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Better visuals & image quality."
+    },
+    {
+      "job_type": "text2image_banana_2",
+      "display_name": "Nano Banana Pro",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Next-gen AI generation model."
+    },
+    {
+      "job_type": "text2image_gpt_image_2",
+      "display_name": "GPT Image 2",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Superior photorealism, sharp text rendering, and advanced instruction following."
+    },
+    {
+      "job_type": "text2image_nano_banana_2",
+      "display_name": "Nano Banana 2",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Faster generation, great value, and enhanced creative visual features."
+    },
+    {
+      "job_type": "text2image_nano_banana_2_lite",
+      "display_name": "Nano Banana 2 Lite",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Fastest, most cost-efficient Gemini Image model."
+    },
+    {
+      "job_type": "text2image_seedream_4.0",
+      "display_name": "Seedream 4.0",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Create images with vivid realism."
+    },
+    {
+      "job_type": "text2image_seedream_5.0_lite",
+      "display_name": "Seedream 5.0 Lite",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "More accurate instructions, more intelligent outputs."
+    },
+    {
+      "job_type": "text2image_seedream_5.0_pro",
+      "display_name": "Seedream 5.0 Pro",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "A multimodal image generation model that features advanced reasoning, efficient content creation, and professional production capabilities."
+    },
+    {
+      "job_type": "text2image_soul_character",
+      "display_name": "ToMoviee Lite",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Create hyper-realistic characters with unmatched precision and control."
+    },
+    {
+      "job_type": "text2image_tomoviee_2.0",
+      "display_name": "Tomoviee 2.0",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "High-res imagery with fast, precise generation."
+    },
+    {
+      "job_type": "text2image_wan_2.7",
+      "display_name": "Wan 2.7",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "A streamlined AI model that uses Chain-of-Thought reasoning to efficiently generate high-quality images."
+    },
+    {
+      "job_type": "text2image_wan_2.7_pro",
+      "display_name": "Wan 2.7 Pro",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "An advanced AI model that utilizes Chain-of-Thought reasoning to generate highly precise, professional-grade images."
+    },
+    {
+      "job_type": "text2image_gemini_omni_flash",
+      "display_name": "Gemini Omni Flash",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "High-performance video model for ultra-fast generation, precise editing, and cinematic control."
+    },
+    {
+      "job_type": "text2video_happyhorse_1.0",
+      "display_name": "HappyHorse 1.0",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "A multi-language video generation model with integrated dialogue, ambient sound, and Foley."
+    },
+    {
+      "job_type": "text2video_happyhorse_1.5",
+      "display_name": "HappyHorse 1.1",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "A video model featuring realistic physics, consistent characters, and cinematic outputs."
+    },
+    {
+      "job_type": "text2video_kling_2.5_turbo",
+      "display_name": "Kling 2.5 Turbo",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Max creativity with Exceptional Value."
+    },
+    {
+      "job_type": "text2video_kling_2.6",
+      "display_name": "Kling 2.6",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "See the Sound, Hear the Visual."
+    },
+    {
+      "job_type": "text2video_kling_3.0",
+      "display_name": "Kling 3.0",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "The Only Native 4K AI Video Model For Longer, Consistent, Cinematic Generation."
+    },
+    {
+      "job_type": "text2video_kling_3.0_fast",
+      "display_name": "Kling 3.0 Turbo",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Speed-optimized variant of Kling 3.0."
+    },
+    {
+      "job_type": "text2video_kling_o1",
+      "display_name": "Kling O1",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "All-in-one video model with strong consistency."
+    },
+    {
+      "job_type": "text2video_minimax_2.3",
+      "display_name": "Hailuo 2.3",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Enhanced quality, smoother and truer."
+    },
+    {
+      "job_type": "text2video_minimax_h3",
+      "display_name": "MiniMax H3",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Native 2K video generation with perfectly synchronized audio and dialogue."
+    },
+    {
+      "job_type": "text2video_seedance _2.0_mini",
+      "display_name": "Seedance 2.0 Mini",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Low-cost rendering for quick drafts."
+    },
+    {
+      "job_type": "text2video_seedance _2.5",
+      "display_name": "Seedance 2.5",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Create coherent 30-second videos with up to 50 multimodal references."
+    },
+    {
+      "job_type": "text2video_seedance2.0_fast",
+      "display_name": "Seedance 2.0 Fast",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Rapid creation with balanced cost."
+    },
+    {
+      "job_type": "text2video_tomoviee_2.0",
+      "display_name": "ToMoviee 2.0",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Realism with creative control."
+    },
+    {
+      "job_type": "text2video_tomoviee_2.5",
+      "display_name": "Seedance 2.0",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Native 4K cinematic multi-shot video generation with multimodal input and precise audio-video sync."
+    },
+    {
+      "job_type": "text2video_veo_3.1",
+      "display_name": "Google Veo 3.1",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Cinematic video with audio."
+    },
+    {
+      "job_type": "text2video_veo_3.1_fast",
+      "display_name": "Google Veo 3.1 Fast",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Speed-optimized video generation."
+    },
+    {
+      "job_type": "text2video_veo_3.1_lite",
+      "display_name": "Google Veo 3.1 Lite",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Fast & affordable drafting. Best for simple shots."
+    },
+    {
+      "job_type": "text2video_veo_3_fast",
+      "display_name": "Google Veo 3 Fast",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Speed-optimized realism."
+    },
+    {
+      "job_type": "text2video_vidu_q3",
+      "display_name": "Vidu Q3",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Multi-shot, Audio-Video Sync."
+    },
+    {
+      "job_type": "text2video_wan_2.5",
+      "display_name": "Wan 2.5",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "High-quality video generation with smooth, stable frames."
+    },
+    {
+      "job_type": "text2video_wan_2.6",
+      "display_name": "Wan 2.6",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Multi-scene videos from visual references, with narration."
+    },
+    {
+      "job_type": "text2video_wan_3.0",
+      "display_name": "Wan 3.0",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Create 30-second stories with expressive character performances."
+    }
+  ]
+}
