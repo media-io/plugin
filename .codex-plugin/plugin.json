@@ -32,7 +32,6 @@
     "defaultPrompt": [
       "Create images in Media.io",
       "Add captions or subtitles to this video",
-      "Trim and clean up this video",
       "Add a simple overlay or transition"
     ],
     "brandColor": "#111827",
