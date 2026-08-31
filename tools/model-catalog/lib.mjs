@@ -18,7 +18,7 @@ export const GENERATION_MODULES = [
 ];
 
 /** tier 为人工标注，registry 无此字段；unknown 表示尚未与产品/服务端确认。 */
-export const TIER_VALUES = ['free', 'ltd_free', 'vip_free', 'vip_credit', 'unknown'];
+export const TIER_VALUES = ['free', 'vip_free', 'unknown'];
 export const STABILITY_VALUES = ['stable', 'review'];
 
 const HERE = dirname(fileURLToPath(import.meta.url));
