@@ -27,7 +27,7 @@
 ## Validation
 
 - `Missing required params: prompt` — user gave no prompt. Ask.
-- `Missing required params: medias` on Virality Predictor (`brain_activity`) — pass exactly one video via `--video <path-or-id>`. Virality Predictor does not need `--prompt`.
+- `Missing required params: <media param>` — the job needs a source file that was never uploaded. Check the parameter name with `mediaio model get <job_type>`, upload the file with `mediaio upload create`, then pass the returned `file_id`.
 - `Invalid values: <param>=<v> (allowed: ...)` — pick from allowed enum.
 - `Unknown params: <name>` — schema doesn't accept this flag. Run `mediaio model get <jst>` and check.
 
