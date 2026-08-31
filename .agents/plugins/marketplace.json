@@ -1,0 +1,20 @@
+{
+  "name": "media-io",
+  "interface": {
+    "displayName": "Media.io"
+  },
+  "plugins": [
+    {
+      "name": "media-io",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    }
+  ]
+}
