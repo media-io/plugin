@@ -10,7 +10,7 @@
       "name": "media-io",
       "source": "./",
       "description": "Media.io plugin for agent-driven video and image creation workflows from Claude Code.",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "skills": [
         "./skills/"
       ]
