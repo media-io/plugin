@@ -38,9 +38,10 @@
 
 | Display name | job_type | Access tier* | Inputs | When to pick it |
 | --- | --- | --- | --- | --- |
-| ToMoviee Lite | `text2image_soul_character` | free | prompt | Default for pure text-to-image. text2image_media_3.0 does not exist in production; this is the free entry point that returns an image directly. |
-| ToMoviee 3.0 Pro | `image2image_media_3.0` | unknown | images, prompt | Default for image-to-image. First choice for character consistency, outfit control and character editing. |
-| ToMoviee Lite | `image2image_media_1.0` | unknown | images, prompt | Fallback target for image-to-image. Retry with this when permission or credits are insufficient. |
+| ToMoviee Lite | `text2image_soul_character` | free | prompt | Default for pure text-to-image. text2image_media_3.0 does not exist in production; this is the free entry point that returns an image directly. Display name is ToMoviee Lite. |
+| ToMoviee 3.0 Pro | `image2image_media_3.0` | vip_free | images, prompt | Default for image-to-image. First choice for character consistency, outfit control and character editing. Free for members; non-members are charged. |
+| ToMoviee Pro (ex-Media 2.0) | `image2image_media_2.0` | vip_free | images, prompt | Member-free alternative to ToMoviee 3.0 Pro. Prefer it when a member wants another free option; non-members are charged. |
+| ToMoviee Lite | `image2image_media_1.0` | free | images, prompt | Fallback target for image-to-image, and the free option in this module. Retry with this when permission or credits are insufficient. Display name is ToMoviee Lite. |
 | GPT Image 2 | `text2image_gpt_image_2` | unknown | prompt | Use when text must be rendered accurately inside the image, or the composition is unusually complex. |
 | GPT Image 2 | `image2image_gpt_image_2` | unknown | images, prompt | Use with a reference image when text must be rendered accurately. |
 | Nano Banana Pro | `text2image_banana_2` | unknown | prompt | Anime, illustration and creative styles. Note the display name is Nano Banana Pro, not Nano Banana 2. |
@@ -325,6 +326,24 @@ A historical artifact; `uni_fun_code` cannot be changed. **Map display name to j
 | `text2image_banana_2` | Nano Banana Pro | Nano Banana 2 |
 | `text2image_soul_character` | ToMoviee Lite | a Soul / character-specific model |
 | `image2video_tomoviee_2.5` | Seedance 2.0 | ToMoviee 2.5 |
+
+### 6.5 ToMoviee is the first-party family, called 天幕 in Chinese
+
+ToMoviee is our own model family. Its Chinese brand name is **天幕**. No display name is literally 天幕, so a user who asks for 天幕 will not match anything by search — resolve the request to the entries below, and let the user choose when several apply.
+
+| job_type | Display name | Module |
+| --- | --- | --- |
+| `image2image_media_1.0` | ToMoviee Lite | image2image |
+| `image2image_media_2.0` | ToMoviee Pro (ex-Media 2.0) | image2image |
+| `image2image_media_3.0` | ToMoviee 3.0 Pro | image2image |
+| `image2video_media_1.0` | ToMoviee 2.0 Pro (ex-Media 1.0) | image2video |
+| `image2video_tomoviee_2.0` | ToMoviee 2.0 | image2video |
+| `image2video_tomoviee_2.0_fast` | Tomoviee 2.0 Fast | image2video |
+| `image2video_tomoviee_3.0` | Tomoviee 3.0 | image2video |
+| `image2video_tomoviee_4.0` | Tomoviee-V4 Pro | image2video |
+| `text2image_soul_character` | ToMoviee Lite | text2image |
+| `text2image_tomoviee_2.0` | Tomoviee 2.0 | text2image |
+| `text2video_tomoviee_2.0` | ToMoviee 2.0 | text2video |
 
 ## 7. Live-lookup command reference
 
