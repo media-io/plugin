@@ -29,6 +29,8 @@ const CATCH_ALL = /everything else|anything else|otherwise|no special|default/i;
 const TIER_FOOTNOTE = 'Access tier is **manually curated**';
 
 const CJK = /[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
+// 分发物中唯一允许的中文：自研模型 ToMoviee 的中文品牌名。新增词需评审。
+const CJK_ALLOWED = ['天幕'];
 
 /** 递归列出目录下所有文件。 */
 function walk(dir) {
@@ -245,7 +247,7 @@ function main() {
     );
   }
 
-  // V13 —— 分发给用户的 skills/ 整树不得含 CJK，产物与手写文件同管。
+  // V13 —— 分发给用户的 skills/ 整树不得含 CJK（品牌名白名单除外），产物与手写文件同管。
   for (const file of walk(SKILLS_DIR)) {
     let text;
     try {
@@ -255,8 +257,10 @@ function main() {
     }
     if (text.includes('\u0000')) continue;
     text.split('\n').forEach((line, i) => {
-      if (CJK.test(line)) {
-        check('V13', false, `${relative(SKILLS_DIR, file)}:${i + 1} 含中文，分发物必须全英文 —— ${line.trim().slice(0, 60)}`);
+      let probe = line;
+      for (const term of CJK_ALLOWED) probe = probe.split(term).join('');
+      if (CJK.test(probe)) {
+        check('V13', false, `${relative(SKILLS_DIR, file)}:${i + 1} 含中文，分发物除品牌名白名单外必须全英文 —— ${line.trim().slice(0, 60)}`);
       }
     });
   }

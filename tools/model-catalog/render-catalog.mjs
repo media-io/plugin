@@ -2,6 +2,7 @@
 import {
   CATALOG_PATH,
   GENERATION_MODULES,
+  compareModels,
   fail,
   info,
   loadOverlay,
@@ -244,6 +245,23 @@ function renderPitfalls(snapshot) {
     }
   }
   lines.push('');
+
+  // 天幕是 ToMoviee 的中文品牌名，属 V13 中文白名单内的唯一例外。
+  const tomoviee = snapshot.models
+    .filter((m) => /tomoviee/i.test(m.display_name))
+    .sort(compareModels);
+  lines.push('### 6.5 ToMoviee is the first-party family, called 天幕 in Chinese', '');
+  lines.push(
+    'ToMoviee is our own model family. Its Chinese brand name is **天幕**. No display name is literally 天幕, so a user who asks for 天幕 will not match anything by search — resolve the request to the entries below, and let the user choose when several apply.',
+    '',
+  );
+  if (tomoviee.length) {
+    lines.push('| job_type | Display name | Module |', '| --- | --- | --- |');
+    for (const model of tomoviee) {
+      lines.push(`| ${code(model.job_type)} | ${cell(model.display_name)} | ${cell(model.fun_module)} |`);
+    }
+    lines.push('');
+  }
   return lines;
 }
 
