@@ -5,6 +5,7 @@
 - `Session expired.` → `mediaio auth login`
 - `Stored credentials are for ... but current environment ...` → `mediaio auth login` for the current API URL.
 - `Not authenticated.` → first `mediaio auth login`.
+- If `mediaio auth login` cannot open a browser, tell the user to run `mediaio auth login` in a local terminal and stop.
 - Only missing credentials, HTTP 401, or an explicit token-refresh rejection should be treated as authentication failures. DNS, TLS, timeout and connection errors do not become valid by logging in again.
 
 ## Host network permission
