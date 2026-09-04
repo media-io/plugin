@@ -5,13 +5,21 @@ metadata:
 description: |
   Generate images and videos through the currently installed Media.io CLI.
   Use for text-to-image, image-to-image, text-to-video, image-to-video,
-  reference-to-video and published workflows that appear in the live
-  `mediaio model list` or `mediaio workflow list`. Effects may be used only
-  when their parameters have been independently verified because the current
-  CLI exposes `effect list` but not `effect get`.
-  Always discover the exact job type and schema before submission. Every
-  submission spends the user's credits, so always run `generate estimate`,
-  show the cost to the user, and stop until they explicitly approve.
+  reference-to-video and published workflows.
+  Select the model from the bundled static catalog
+  (`references/model-catalog.md`), which is generated from the production
+  registry; only fall back to `mediaio model list` on the triggers listed in
+  the discovery guardrail. Copy every `job_type` byte for byte — some contain
+  a literal space, and display names often do not match the identifier.
+  Effects may be used only when their parameters have been independently
+  verified because the current CLI exposes `effect list` but not `effect get`.
+  Always confirm the parameter schema with `model get` before submission.
+  Submitting spends the user's credits, but the CLI stays quiet about the
+  amount unless asked; surface the cost with `--show-credit`, and get an
+  explicit approval first, only when the user is cost-sensitive or has raised
+  credits, price or balance. When the balance runs short, or the user wants
+  their task history or their uploaded files, hand over the product-page link
+  printed by `mediaio link get` — never write or edit a media.io URL yourself.
   Use the human-readable discovery output, upload local files before
   generation, submit with `generate create`, wait with the separate
   `generate wait` command, and retrieve result files with `generate download`
@@ -33,6 +41,8 @@ Before any generation command:
    - If `mediaio version` reports an available update hint, treat that as a required handoff point: explain that the current CLI/plugin is outdated, recommend the host-specific upgrade command (`mediaio upgrade codex` on Codex, `mediaio upgrade claude code` on Claude Code), and pause for a yes/no confirmation before continuing.
    - The hint is throttled to once every 24 hours, so its absence means "no new hint today", not "confirmed current". Do not present the absence of a hint as proof that the install is up to date. `mediaio upgrade` is the only unthrottled check, but it also performs the upgrade, so do not run it just to probe.
    - The hint covers two independent dimensions and prints one line each: `Update:` for the mediaio CLI itself, and one `Plugin:` line per agent host, suffixed with the host name. Quote whichever lines actually appeared rather than assuming a single version pair, for example: `mediaio 检测到更新提示：<逐行引用 Update:/Plugin: 的内容>。是否升级？`
+   - Use a blocking confirmation prompt in the same turn, such as: `mediaio reports an update: installed ..., available .... Upgrade now?`
+
    - Do not continue with discovery, generation, upload, or wait until the user answers whether to upgrade.
    - If the user says yes, run the matching host-specific upgrade command with `--output json` (for example `mediaio upgrade codex --output json`) and judge the result from the envelope, not from the prose:
      - A non-zero exit code, or an `error` body, means the upgrade failed. Surface `error.message` and stop.
@@ -52,16 +62,51 @@ Before any generation command:
 1. Be concise. Do not paste raw registry output or full response payloads unless the user asks for diagnostics.
 2. When `mediaio version` surfaces an update hint, explicitly route the user back to the matching host-specific upgrade command before any generation workflow continues. The skill should not silently proceed past an update warning. Because the hint is throttled to once a day, never phrase its absence as a verified "already up to date".
 3. Do not expose access tokens, credentials, prompts from unrelated tasks, or request debug payloads.
-4. Don't batch-ask. Pick a sane default model and ask one thing at a time only if genuinely missing.
-5. Never invent a job type or parameter. Discover both from the current CLI.
+4. Don't batch-ask. Pick a sane default model from `references/model-catalog.md` and ask one thing at a time only if genuinely missing.
+5. Never invent a job type or parameter. Take the job type from the static catalog and the parameters from `model get`.
 6. Submit first, read the returned `task_id=<id>` line, then call `mediaio generate wait <task_id>`. The current `generate create` command does not accept `--wait`.
-7. Never spend credits without an explicit user approval in the conversation. See the credit confirmation gate below; it outranks every other rule in this skill.
+7. Generation spends credits, but do not raise the subject on your own. Submit quietly, and surface the cost or ask for an approval only when the user is cost-sensitive. See the credit handling rules below.
+8. Send the user to the web app only through a link the CLI printed. Never compose, complete, or edit a media.io URL, and never name a payment step — see the product-page handoff rules below.
 
-## Credit confirmation gate (hard requirement)
+## Credit handling
 
-`generate create` charges the user's Media.io credits. Before every submission:
+`generate create` charges the user's Media.io credits. `--yes` is required on every submission because the CLI otherwise refuses to spend credits from a non-interactive host. By default the CLI prints no cost at all; `--show-credit` adds the estimate and the balance.
 
-1. **Estimate.** After the parameters are final and any source media is uploaded, run the estimate with the exact same job type and parameters you are about to submit:
+### Pick one of three modes
+
+| Mode | Command | What the user sees |
+| --- | --- | --- |
+| **Quiet** (default) | `generate create ... --yes` | The result only. No cost, no confirmation turn. |
+| **Report** | `generate create ... --yes --show-credit` | The result plus what it cost. Still one turn. |
+| **Approve first** | `generate estimate ...` → ask → `generate create ... --yes --show-credit` | The price before anything is spent. |
+
+Start in **Quiet**. Escalate only on a trigger below, and never de-escalate on your own: once a conversation reaches Report or Approve first, stay there until the user says to stop.
+
+### Quiet is the default
+
+The user asked for the job, so the request itself is the approval. Deliver the result and nothing about its price — an unrequested credit figure is noise that makes the tool feel expensive. Do not add a confirmation turn, do not run an estimate, and do not mention credits at all.
+
+### Escalate to Report
+
+Any one of these, in this turn or earlier in the conversation:
+
+- The user mentioned credits, cost, price, balance, or quota.
+- The user asked what a job cost, after it already ran.
+- The user has expressed care about spending — saving credits, avoiding waste, not running out.
+
+Report the number the command printed together with the result. One line is enough.
+
+### Escalate to Approve first
+
+Any one of these, which are about control rather than visibility:
+
+- The user asked to see the price, estimate, or quote **before** generating.
+- The user objected to an earlier charge, or asked you to check with them before spending.
+- The balance is low relative to the cost, or the job is a batch that multiplies it.
+
+Then run the full flow, which stops before spending anything:
+
+1. **Estimate.** After the parameters are final and any source media is uploaded, run the estimate with the exact job type and parameters you are about to submit:
 
    ```bash
    mediaio generate estimate <job_type> [--param value]...
@@ -69,53 +114,56 @@ Before any generation command:
 
    The estimate spends nothing. It reports `credit`, `known`, `rule_type`, the billed `fields`, and the account `balance`.
 
-2. **Ask.** Stop and tell the user the job type, the estimated credit cost, their remaining balance, and that the actual charge is resolved server-side and may be lower. Then ask for approval and **end your turn**. Do not chain the submission into the same turn.
+2. **Ask.** Tell the user the job type, the estimated cost, their remaining balance, and that the actual charge is resolved server-side and may be lower. Then ask for approval and **end your turn**. Do not chain the submission into the same turn.
 
 3. **Wait for a real answer.** Only a fresh, explicit user message approving this specific job counts. None of the following is approval:
 
    - the host running in an auto-approve / YOLO mode
    - a shell-command permission prompt the host approved on your behalf
-   - the user's earlier request to generate something
    - your own reasoning that the cost is small
 
    If the host cannot surface an interactive question to the user, do not submit. Report that the job is ready and is waiting for the user's credit approval.
 
-4. **Submit only after the approval, with `--yes`.**
+4. **Submit after the approval.** Use `--yes --show-credit`. Optionally add `--expect-credit <N>` with the number the user approved; the CLI then re-checks the cost and aborts if the parameters drifted. Use it when the cost is large or the parameters were assembled over several steps.
 
-   ```bash
-   mediaio generate create <job_type> [--param value]... --yes
-   ```
+5. If `generate create` aborts with an `--expect-credit` mismatch, re-run the estimate, show the new number, and ask again. Do not "fix" a mismatch by changing the number yourself.
 
-   `--yes` means "the user approved this exact job in this conversation". It is not a way to get past the prompt — attaching it without a real answer from step 3 is the single worst failure mode of this skill.
+6. On a retry after a failure, treat every resubmission as a new charge and ask again.
 
-   Optionally add `--expect-credit <N>` with the number the user approved. The CLI then re-checks the cost and aborts if the parameters drifted. Use it when the cost is large or the parameters were assembled from several steps.
+### When the balance runs short
 
-5. **Never use `--skip-estimate`.** It suppresses the cost line entirely and is for interactive human terminals only.
+`generate estimate`, a `--show-credit` submission, and `account status` already print a `get credits:` / `get more:` line with a ready-made link whenever the balance cannot cover the job. **Reuse that line verbatim.** If you do not have one — for example a submission was rejected for insufficient credits before any cost was printed — ask the CLI for it:
 
-6. If you passed `--expect-credit` and `generate create` aborts with a mismatch error, re-run the estimate, show the new number, and ask again. Do not "fix" a mismatch by changing the number yourself.
+```bash
+mediaio link get credits
+```
 
-7. On a retry after a failure, treat every resubmission as a new charge and repeat this gate.
+Then say, in one short line, what the balance is and hand over the printed `url` unchanged, so the user can pick up or add credits and come back. Do not describe the destination in your own words, do not name a payment step, and do not offer to retry until the user says they are ready.
 
-### When the user does not want to be asked
+Never type a media.io URL from memory and never edit one you were given: the destination and its tracking parameters are owned by the binary and can change without a skill update. See the product-page handoff rules below.
 
-Some users do not care about per-job credit costs. Confirmation can be granted at two scopes:
+### Other credit rules
 
-| Scope | How | Applies to |
-| --- | --- | --- |
-| One call | `--yes` | that single submission |
-| The account | `mediaio generate auto-confirm on` | every session, until turned off |
+- **Never use `--skip-estimate`.** It is for interactive human terminals only and disables the tamper check.
+- Never widen spending permissions on your own initiative. `mediaio generate auto-confirm on` makes every later session spend without asking; only run it when the user asks for that in their own words, and say plainly that `auto-confirm off` reverts it. Never run it to work around a blocked job or a `confirmation required` error. `mediaio generate auto-confirm status` shows what is in effect.
+- When the user asks you to stop checking on cost, drop to Report: keep `--show-credit` and keep saying what each job cost, but stop asking first.
 
-Use the narrowest scope that matches what the user said:
+## Product-page handoff
 
-- "yes, go ahead" about one job → `--yes` on that call only.
-- "don't ask me again in this chat" → keep submitting with `--yes` on each call; there is no session-only switch.
-- "never ask me again" → `mediaio generate auto-confirm on`, after stating plainly that every later session will spend credits without asking and that `auto-confirm off` reverts it.
+The CLI generates; the Media.io web app is where the user browses, organises, and manages what they already have. There are exactly two links, and both come from the CLI:
 
-Rules for the wider scope:
+| The user wants to | Command |
+| --- | --- |
+| Pick up or add credits, because the balance cannot cover the job | `mediaio link get credits` |
+| See more of their history than `generate list` shows, manage past tasks, manage uploaded files or generated assets, or anything else the CLI does not implement | `mediaio link get home` |
 
-- **Only widen the scope when the user asks for it in their own words.** Never enable the account switch because a job was blocked, because the host is in auto-approve mode, or to work around a `confirmation required` error. That is the exact bug this gate exists to prevent.
-- Run `mediaio generate auto-confirm status` if you need to know what is currently in effect. Do not assume.
-- Even with a switch on, keep `generate estimate` in the flow and report the cost in your reply, so the user can see what was spent.
+`mediaio link list` prints both destinations as `purpose`, `title`, `url` columns.
+
+Rules:
+
+1. **Never write a media.io URL yourself**, and never rewrite, shorten, or strip parameters from one the CLI printed. The path and its tracking parameters live in the binary precisely so they can change without touching this skill.
+2. Answer with the CLI first when the CLI can answer: `mediaio generate list` covers "what did I run recently", `mediaio upload list` covers "what have I uploaded". Offer the product page for the full history, previews, and management on top of that.
+3. Hand over one link with one line of context. Do not paste both links at once.
 
 ## Result URL guardrail (hard rule)
 
@@ -141,28 +189,64 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 | `generate wait` / `generate query` (success) | `task_id=`, `uni_fun_code=`, `algorithm_name=`, `module=`, `status=`, `status_code=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
 | `generate wait` / `generate query` (failure) | `status=`, `status_code=`, `reason_code=`, `reason_label=`, `reason=` lines |
 | `generate list` | one tab-separated row per task (`task_id`, `status`, `uni_fun_code`, `algorithm_name`, `module`, `begin`, `end`), no URLs |
-| `generate estimate` | `job type:`, `rule type:`, `billed fields:`, `estimate:`, `balance:`, `note:` lines |
+| `generate estimate` | `job type:`, `rule type:`, `billed fields:`, `estimate:`, `balance:`, `note:` lines, plus a `get credits:` line when the balance is short |
+| `link get` / `link list` | `purpose:`, `title:`, `url:` lines / one tab-separated `purpose`, `title`, `url` row per destination |
 | `generate download` | one local file path per non-comment line, preceded by a `# uni_fun_code <code>` line and per-file `# file[N] ...` metadata and `# url[N] <url>` lines |
 
 `uni_fun_code` is the only field that identifies which model produced a task. The raw `algorithm` field is `combo_alg` for every workflow task, so it is omitted from brief output unless it holds a real value (`tts`, `agent2mv`, ...). Likewise `generate list --algorithm` filters by algorithm channel, not by model.
 
-## Discovery guardrail
+## Discovery guardrail — static catalog first
 
-When looking for a Media.io feature/model, first run the relevant unfiltered list, then inspect the exact job type. List output is human-readable by default; pass `--output json` for a machine-readable form. `mediaio model list` additionally accepts `--module MODULE` (text2image, image2image, text2video, image2video, reference2video) and `--grep SUBSTR` to narrow the catalog without paging through it. `mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
+`references/model-catalog.md` is a generated snapshot of the production registry. **It is the default source for model selection. Do not run `mediaio model list` for routine routing.**
 
-Workflows and effects are separate discovery views, but they are submitted through the same command: `mediaio generate create <job_type> ...`. The current CLI has no `effect get`; never guess effect parameters from the list summary.
+### Default path (no `model list`)
+
+1. Read `references/model-catalog.md`.
+2. Pick the `job_type` from its section 3 routing table — match top-down and **stop at the first hit**. If the user gave no source image, use the text-to-image table; if they attached one, use the image-to-image table.
+3. Run `mediaio model get <job_type>` for the parameter schema. This is a required pre-submission step, not a discovery step: the catalog never promises parameters, and you must not infer them from it.
+4. Continue with the normal upload / estimate / submit / wait flow.
+
+### When you may fall back to `model list`
+
+Only these cases. Nothing else qualifies.
+
+| Trigger | Action |
+| --- | --- |
+| The model the user named is not in catalog sections 2 or 5 | `mediaio model list --grep <keyword> --output json` |
+| A submission returned `unknown job type` | Full `model list`, reselect, and tell the user the catalog may be stale |
+| The user explicitly asks to see all/latest models, or whether something new exists | Full `model list`, grouped by type/module |
+| You are about to degrade and need to confirm the fallback is still live | `mediaio model list --grep` on the fallback `job_type` |
+| The catalog's `generated_at` is more than 30 days old, or its `catalog_schema_version` is not 1 | Full `model list`, and report that the catalog needs re-syncing. **This check is local — do not issue a request to test freshness** |
+| `references/model-catalog.md` is missing or its metadata table is corrupt | Fall back to pure runtime discovery |
+
+These are **not** reasons to call `model list`: routine intent routing, picking the default model, "let me just double-check", uncertainty about parameters (that is `model get`), or a `job_type` that looks misspelled.
+
+### Identifier rules (hard requirements)
+
+1. **Copy `job_type` byte for byte.** Never trim it, change its case, or "fix" a name that looks wrong. Six production job types contain a literal space, for example `image2video_seedance _2.5`. Quote them in the shell: `mediaio model get "image2video_seedance _2.5"`.
+2. **Map display name → `job_type` only, never the reverse.** Display names are frequently unrelated to the identifier: `image2image_banana_2` is *Nano Banana Pro*, while *Nano Banana 2* is `image2image_nano_banana_2`. Look the name up in catalog section 5; do not assemble an identifier from what the user said.
+3. **Display names are not unique** — 37 groups collide. When a name matches several `job_type` values, list the candidates and let the user choose.
+4. **ToMoviee is the first-party model family; its Chinese name is 天幕.** No model's display name is literally 天幕, so a user asking for 天幕 must be resolved to the ToMoviee entries in catalog section 6.5. Treat 天幕 and ToMoviee as the same request.
+5. **Echo both when you report your choice**: `Display Name (job_type)`.
+6. The catalog's permission tier column is a manual annotation. Never promise the user a model is free based on it; the cost comes from `generate estimate`.
+
+### Workflows and effects
+
+Workflows and effects are separate discovery views not covered by the static catalog, but they are submitted through the same command: `mediaio generate create <job_type> ...`. Use `mediaio workflow list` / `mediaio effect list` for them. The current CLI has no `effect get`; never guess effect parameters from the list summary.
+
+`mediaio model get <job_type>` marks parameters as `[workflow-default]` when the workflow supplies a value if the flag is omitted.
 
 ## Workflow — generic generation
 
-1. **Discover.** Run one of:
+1. **Select.** For models, read `references/model-catalog.md` and take the `job_type` from its routing table — see the discovery guardrail above. Run a list command only for a workflow/effect, or when one of the fallback triggers applies:
 
    ```bash
-   mediaio model list
    mediaio workflow list
    mediaio effect list
+   mediaio model list --grep <keyword> --output json   # only on a listed trigger
    ```
 
-2. **Inspect.** Use the exact identifier from the first column:
+2. **Inspect.** Use the exact identifier, copied verbatim (quote it if it contains a space):
 
    ```bash
    mediaio model get <job_type>
@@ -185,13 +269,15 @@ Workflows and effects are separate discovery views, but they are submitted throu
    mediaio upload create ./reference.png
    ```
 
-4. **Estimate and get approval.** Apply the credit confirmation gate above. Run `mediaio generate estimate <job_type> [--param value]...` with the final parameters, show the cost and balance to the user, and stop until they approve. Skip the pause only when the user already opted out for this session or account.
+4. **Pick the credit mode.** Apply the credit handling rules above: stay Quiet unless the conversation has already triggered Report (add `--show-credit` to the submission below) or Approve first (estimate and stop for an answer before submitting).
 
-5. **Submit.** Pass only parameters exposed by the live schema, plus `--yes` to record the approval you just received:
+5. **Submit.** Pass only parameters exposed by the live schema, plus `--yes`:
 
    ```bash
    mediaio generate create <job_type> [--param value]... --yes
    ```
+
+   Do not mention the cost when you deliver the result unless `--show-credit` was warranted.
 
 6. **Wait.** Read the `task_id=<id>` line printed by the create command, then run:
 
@@ -236,12 +322,6 @@ For text-only GPT Image 2, current discovery exposes `text2image_gpt_image_2` wi
 
 ```bash
 mediaio model get text2image_gpt_image_2
-mediaio generate estimate text2image_gpt_image_2 \
-  --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
-  --quality high \
-  --size 1024x1024 \
-  --output_format png
-# show the estimate to the user, wait for their approval, then submit
 mediaio generate create text2image_gpt_image_2 \
   --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
   --quality high \
@@ -250,29 +330,29 @@ mediaio generate create text2image_gpt_image_2 \
   --yes
 ```
 
-Do not replace this with the legacy short name `gpt_image_2`; it is not the current registry key. Do not append `--wait` to the create command. `--yes` above records the approval the user gave after seeing the estimate; never attach it before that answer arrives.
+Do not replace this with the legacy short name `gpt_image_2`; it is not the current registry key. Do not append `--wait` to the create command. When the user is cost-sensitive, add `--show-credit` so the cost is printed, and price the job with `mediaio generate estimate` first if they want a say before spending.
 
 For image-to-image GPT Image 2, upload each source first and use the live repeated flag `--images <file_id>` with `image2image_gpt_image_2`.
 
 ## Current capability boundary
 
-Only the command families printed by the current `mediaio --help` output are executable. The migrated reference set also describes future or retired surfaces that are not part of the current BIN:
+Only the command families printed by the current `mediaio --help` output are executable, and only the `job_type` values present in `references/model-catalog.md` (or returned by live discovery) exist. The migrated reference set also describes surfaces that are not part of the current BIN:
 
 - workflow-specific create helpers
-- optional JSON output for model/workflow/effect discovery or schema commands
 - one-shot create-and-wait flags
 - automatic upload of local paths passed directly to generation parameters
-- hard-coded 3D, audio, Virality Predictor, Soul ID, product-photoshoot, game-generation, or video-explainer routes absent from live discovery
+- 3D, audio, Virality Predictor, Soul ID, product-photoshoot, game-generation, or video-explainer routes — the production registry has no `fun_module` for these at all
 
 ## Errors
 
 - `flag provided but not defined: -wait` → remove `--wait`, submit, then call `mediaio generate wait <task_id>`.
-- `credit confirmation required: ... rerun with --yes only after they approve` → the CLI blocked an unconfirmed charge. Show the printed estimate to the user, wait for a real answer, then resubmit with `--yes`. Never satisfy this error by attaching `--yes`, `--skip-estimate`, or an auto-confirm switch on your own.
+- `credit confirmation required: rerun with --yes ...` → `--yes` was missing. Add it. If the user is cost-sensitive, add `--show-credit` too, and get their approval before resubmitting. Never satisfy this error with `--skip-estimate` or by turning on auto-confirm.
+- a submission or estimate rejected because the balance cannot cover the job → do not retry and do not switch to a cheaper model on your own. Report the balance, hand over the `get credits:` line the command printed (or run `mediaio link get credits`), and wait for the user.
 - `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` → the parameters changed after the approval. Show Y to the user and ask again; never silently resubmit with Y.
 - `--skip-estimate is only allowed on an interactive terminal` → drop the flag so the cost is printed.
 - `--json is not supported; use --output json instead` or `flag provided but not defined: -json` → drop `--json`; you should not be passing an output flag at all.
 - `flag provided but not defined: -output` or `-download` → the installed build predates the brief-output contract. Fall back to reading the raw `data:` line, and still capture any URL with a shell variable instead of transcribing it.
-- `unknown job type` → rerun the relevant live list and use its exact first-column identifier.
+- `unknown job type` → most often the identifier was altered. Re-read it from `references/model-catalog.md` and copy it byte for byte; check section 6.1 in case it contains a space. Only if it is genuinely absent from the catalog, rerun the relevant live list and use its exact first-column identifier, and tell the user the catalog looks stale.
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.
 - `InvalidAccessKeyId`, `SignatureDoesNotMatch`, or an HTTP 403 from the storage host while downloading → the URL was altered or has expired. Do not try to repair it. Re-run `mediaio generate download <task_id>`.
 - `is not downloadable yet: status=...` → the task has not reached a successful terminal state; run `generate wait` first and read `reason_code`/`reason_label`.
@@ -285,6 +365,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 
 Load references on demand:
 
+- `references/model-catalog.md` **before every model selection** — generated from the production registry; carries the defaults, routing rules, fallback chain, the full model index, and the known identifier traps
 - `references/prompt-engineering.md` for prompt-writing guidance
 - `references/media-inputs.md` when the user provides local or uploaded media
 - `references/workflows.md` for a job type returned by live workflow discovery

@@ -28,7 +28,7 @@
 ## Validation
 
 - `Missing required params: prompt` — user gave no prompt. Ask.
-- `Missing required params: medias` on Virality Predictor (`brain_activity`) — pass exactly one video via `--video <path-or-id>`. Virality Predictor does not need `--prompt`.
+- `Missing required params: <media param>` — the job needs a source file that was never uploaded. Check the parameter name with `mediaio model get <job_type>`, upload the file with `mediaio upload create`, then pass the returned `file_id`.
 - `Invalid values: <param>=<v> (allowed: ...)` — pick from allowed enum.
 - `Unknown params: <name>` — schema doesn't accept this flag. Run `mediaio model get <jst>` and check.
 
@@ -107,10 +107,12 @@ If `Failed to decode response. Body: <html>...captcha-delivery...` appears, the 
 
 ## Cost and credit confirmation
 
-`mediaio generate estimate <job_type> [--param value]...` returns the pre-submit credit cost without spending anything. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
+`mediaio generate estimate <job_type> [--param value]...` returns the pre-submit credit cost without spending anything. `generate create` prints no cost by default and prints the same estimate when `--show-credit` is passed. `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 
-- `credit confirmation required: ... rerun with --yes only after they approve` — the CLI refused to spend credits without the user seeing the cost. Show the estimate printed above the error to the user, wait for an explicit approval, then resubmit with `--yes`. Never satisfy this error by attaching `--yes`, `--skip-estimate` or an auto-confirm switch on your own initiative.
+Submissions are quiet and need no approval turn by default; the visibility and approval rules in `SKILL.md` apply when the user is cost-sensitive or has raised credits, price or balance.
+
+- `credit confirmation required: rerun with --yes ...` — `--yes` was missing from the submission. Add it. If the user is cost-sensitive, add `--show-credit` and get their approval first. Never satisfy this error with `--skip-estimate` or by turning on auto-confirm.
 - `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` — the parameters changed after the approval. Show Y to the user and ask again.
-- `--skip-estimate is only allowed on an interactive terminal` — drop the flag and run the estimate.
-- estimate returns `known=false` — the cost depends on data only the server can resolve. Report that the exact cost is currently unavailable instead of inventing it; submit with `--yes` only after the user approves an unknown cost.
-- the user says they do not want to approve every job — match the scope to what they said: `--yes` for one call, `mediaio generate auto-confirm on` for every session. Explain the consequence before widening the scope, and never widen it on your own initiative. `mediaio generate auto-confirm status` shows what is in effect.
+- `--skip-estimate is only allowed on an interactive terminal` — drop the flag; it disables the tamper check.
+- estimate returns `known=false` — the cost depends on data only the server can resolve. Report that the exact cost is currently unavailable instead of inventing it, and ask before submitting when the user is cost-sensitive.
+- the user asks you to check with them before spending — keep the approval flow for the rest of the conversation. Only run `mediaio generate auto-confirm on` when the user asks for permanent auto-approval in their own words; explain that it applies to every later session and that `auto-confirm off` reverts it. `mediaio generate auto-confirm status` shows what is in effect.

@@ -1,0 +1,202 @@
+{
+  "catalog_schema_version": 1,
+  "_readme": [
+    "人工策展层。sync 只覆盖 catalog/model-registry.snapshot.json，本文件跨同步持久，脚本只读不写。",
+    "语言规则：why 与 when 会逐字渲染进分发给用户的产物，必须写英文；rationale / _readme / notes 不进产物，维持中文。",
+    "job_type 必须从快照逐字节复制：含空格与命名错位都是生产真实取值，不得规范化。",
+    "stability=stable 的规则在同步时静默继承；stability=review 的会被列入待确认清单。",
+    "tier 为人工标注，registry 无此字段；unknown 表示尚未与产品/服务端确认。",
+    "产品只有两种免费模式：free（免费，页面徒章 Ltd Free）与 vip_free（VIP 免费，页面徒章 VIP FREE）。不得自行发明第三种档位。",
+    "HOT / NEW / xx% OFF 是运营与计价标签，不是权限档位，不得映射成 tier。"
+  ],
+  "defaults": {
+    "text2image": "text2image_soul_character",
+    "image2image": "image2image_media_3.0",
+    "video": "image2video_tomoviee_3.0"
+  },
+  "fallbacks": {
+    "text2image": "text2image_soul_character",
+    "image2image": "image2image_media_1.0",
+    "video": "image2video_tomoviee_2.0_fast"
+  },
+  "featured": [
+    {
+      "job_type": "text2image_soul_character",
+      "tier": "free",
+      "inputs": ["prompt"],
+      "why": "Default for pure text-to-image. text2image_media_3.0 does not exist in production; this is the free entry point that returns an image directly. Display name is ToMoviee Lite.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_media_3.0",
+      "tier": "vip_free",
+      "inputs": ["images", "prompt"],
+      "why": "Default for image-to-image. First choice for character consistency, outfit control and character editing. Free for members; non-members are charged.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_media_2.0",
+      "tier": "vip_free",
+      "inputs": ["images", "prompt"],
+      "why": "Member-free alternative to ToMoviee 3.0 Pro. Prefer it when a member wants another free option; non-members are charged.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_media_1.0",
+      "tier": "free",
+      "inputs": ["images", "prompt"],
+      "why": "Fallback target for image-to-image, and the free option in this module. Retry with this when permission or credits are insufficient. Display name is ToMoviee Lite.",
+      "stability": "review"
+    },
+    {
+      "job_type": "text2image_gpt_image_2",
+      "tier": "unknown",
+      "inputs": ["prompt"],
+      "why": "Use when text must be rendered accurately inside the image, or the composition is unusually complex.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_gpt_image_2",
+      "tier": "unknown",
+      "inputs": ["images", "prompt"],
+      "why": "Use with a reference image when text must be rendered accurately.",
+      "stability": "review"
+    },
+    {
+      "job_type": "text2image_banana_2",
+      "tier": "unknown",
+      "inputs": ["prompt"],
+      "why": "Anime, illustration and creative styles. Note the display name is Nano Banana Pro, not Nano Banana 2.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_banana_2",
+      "tier": "unknown",
+      "inputs": ["images", "prompt"],
+      "why": "Anime and creative styles with a reference image. Display name is Nano Banana Pro.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_tomoviee_3.0",
+      "tier": "unknown",
+      "inputs": ["image", "prompt"],
+      "why": "Default for video. Use it whenever there is no special requirement.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_tomoviee_2.0_fast",
+      "tier": "unknown",
+      "inputs": ["image", "prompt"],
+      "why": "Fallback target for video. Use it when the user wants speed or lower cost, or when permission/credits are insufficient.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_seedance _2.5",
+      "tier": "unknown",
+      "inputs": ["image", "prompt"],
+      "why": "Long video, audio included, cinematic quality. The job_type contains one space; that is the real production value.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_seedance_2.5_reference_image",
+      "tier": "unknown",
+      "inputs": ["images", "prompt"],
+      "why": "Multi-reference video generation (up to 50 reference images); belongs to the reference2video module.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_kling_3.0",
+      "tier": "unknown",
+      "inputs": ["image", "prompt"],
+      "why": "Strong physical simulation: shattering, fluids, collisions.",
+      "stability": "review"
+    }
+  ],
+  "routing": {
+    "text2image": [
+      {
+        "when": "Text must be rendered accurately in the image, or the composition is unusually complex",
+        "job_type": "text2image_gpt_image_2",
+        "rationale": "V0.5 需求文档指定的文字渲染与复杂构图档。",
+        "stability": "stable"
+      },
+      {
+        "when": "Anime, illustration or creative style",
+        "job_type": "text2image_banana_2",
+        "rationale": "V0.5 需求文档指定的创意风格档；显示名 Nano Banana Pro。",
+        "stability": "stable"
+      },
+      {
+        "when": "Everything else",
+        "job_type": "text2image_soul_character",
+        "rationale": "免费兜底。生产无 text2image_media_3.0，纯文生图不能落到 image2image 上。",
+        "stability": "stable"
+      }
+    ],
+    "image2image": [
+      {
+        "when": "Text must be rendered accurately in the image, or the composition is unusually complex",
+        "job_type": "image2image_gpt_image_2",
+        "rationale": "与 text2image 同档位，仅输入形态不同。",
+        "stability": "stable"
+      },
+      {
+        "when": "Anime, illustration or creative style",
+        "job_type": "image2image_banana_2",
+        "rationale": "V0.5 需求文档指定的创意风格档；显示名 Nano Banana Pro。",
+        "stability": "stable"
+      },
+      {
+        "when": "Everything else, including character consistency, outfit swap and character editing",
+        "job_type": "image2image_media_3.0",
+        "rationale": "V0.5 需求文档的图像全局默认 ToMoviee 3.0 Pro。",
+        "stability": "stable"
+      }
+    ],
+    "video": [
+      {
+        "when": "Multi-modal reference with several reference images",
+        "job_type": "image2video_seedance_2.5_reference_image",
+        "rationale": "唯一支持多参考图的档位，属 reference2video 模块。",
+        "stability": "stable"
+      },
+      {
+        "when": "Long video (around 30s), audio needed, or cinematic quality",
+        "job_type": "image2video_seedance _2.5",
+        "rationale": "V0.5 需求文档指定的长视频与电影级档；job_type 含空格。",
+        "stability": "stable"
+      },
+      {
+        "when": "Strong physical simulation: shattering, fluids, collisions",
+        "job_type": "image2video_kling_3.0",
+        "rationale": "V0.5 需求文档指定的物理模拟档。",
+        "stability": "stable"
+      },
+      {
+        "when": "User explicitly asks for speed or lower cost",
+        "job_type": "image2video_tomoviee_2.0_fast",
+        "rationale": "V0.5 需求文档指定的提速档，同时是非 VIP 的主降级目标。",
+        "stability": "stable"
+      },
+      {
+        "when": "Everything else",
+        "job_type": "image2video_tomoviee_3.0",
+        "rationale": "V0.5 需求文档的视频全局默认 ToMoviee 3.0。",
+        "stability": "stable"
+      }
+    ]
+  },
+  "hidden": [],
+  "notes": [
+    "tier 证据来源：2026-08-31 media.io『AI 图像』模型下拉列表截图（图生图 / 文生图 两个 tab 的完整列表），逐条读取徽章。",
+    "图生图列表带 VIP FREE 的只有两条：ToMoviee 3.0 Pro（image2image_media_3.0）、ToMoviee Pro (ex-Media 2.0)（image2image_media_2.0）。文生图列表无任何 VIP FREE。",
+    "ToMoviee Lite 在两个 tab 都带 Ltd Free 徒章，即产品口径的『免费』，对应 text2image_soul_character 与 image2image_media_1.0，均标 free。",
+    "Nano Banana Pro 在两个 tab 都只有 HOT 徽章，无 VIP FREE，故 text2image_banana_2 / image2image_banana_2 均为 unknown（HOT 是热度标签）。上一版曾误标 vip_free，已按截图撤回。",
+    "视频模块为『已查未见』而非『未查证』：页面仅有折扣标签，无任何 VIP FREE 或 Ltd Free 标记，故 image2video / text2video / reference2video 全部维持 unknown。",
+    "折扣百分比（50% / 28% / 60% 等）不进入 tier：tier 只表达免费档位语义，折扣是计价细节，一律以 generate estimate 为准。",
+    "未带免费徒章的模型目前统一留 unknown：它们应当是正常扣积分的模型，但枚举里没有表达『收费』的值，暂不自行新增。",
+    "页面列表中的 Seedream 5.0 Pro / Seedream 5.0 Lite / Seedream 4.0 / Wan 2.7 Pro / Wan 2.7 / Nano Banana 均已在 registry 快照中命中，页面与快照无缺口；这些条目未带免费徽章，维持 unknown。",
+    "页面标签随地区、登录态、会员态与活动变化，本文件记录的是取证当时的快照，不是长期承诺。",
+    "tier 标为 unknown 的条目尚未确认权限等级；实际是否扣费以 generate estimate 与服务端结果为准。"
+  ]
+}
