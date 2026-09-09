@@ -50,9 +50,9 @@ mediaio generate query <workflow_name> <task_id>
 
 ## Cost information
 
-`generate create` says nothing about cost by default. Add `--show-credit` when the user is cost-sensitive or has asked about credits, and report the number it prints with the result. Run `mediaio generate estimate <workflow_name> [--param value]...` instead when they want a say before spending: it submits nothing, and returns the credit cost, the billed fields and the account balance.
+`generate create` says nothing about cost by default. Add `--show-credit` when the user is cost-sensitive or has asked about credits, and report the number it prints with the result. Run `mediaio generate estimate <workflow_name> [--param value]...` instead when they want a say before spending: it submits nothing, and returns the credit cost, whether this request is free, and the account balance.
 
-When the estimate returns `known=false`, the cost cannot be resolved locally (for example a rule that depends on server-side media metadata). Tell the user the exact cost is unavailable instead of inventing it, and ask before submitting when they are cost-sensitive.
+The cost is computed server-side for the signed-in account, so `estimate: 0 credit(s)` / `free: yes` is authoritative — this request costs nothing. There is no "free quota" or partial-free state: it is either free or charged. `free: no - this model is free for members` means a membership would make it free; report that as an option, do not switch models on your own.
 
 `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 

@@ -72,7 +72,8 @@ Match in order and **stop at the first hit**; do not keep comparing.
 | --- | --- | --- | --- |
 | 1 | Text must be rendered accurately in the image, or the composition is unusually complex | GPT Image 2 | `image2image_gpt_image_2` |
 | 2 | Anime, illustration or creative style | Nano Banana Pro | `image2image_banana_2` |
-| 3 | Everything else, including character consistency, outfit swap and character editing | ToMoviee 3.0 Pro | `image2image_media_3.0` |
+| 3 | Everything else, including character consistency, outfit swap and character editing, AND `account status` reports a membership `level` of `standard` or `premium` | ToMoviee 3.0 Pro | `image2image_media_3.0` |
+| 4 | Everything else, including character consistency, outfit swap and character editing, AND the account is not a member or the membership level is unknown | ToMoviee Lite | `image2image_media_1.0` |
 
 ### Video
 

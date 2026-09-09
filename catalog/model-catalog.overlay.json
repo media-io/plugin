@@ -129,7 +129,7 @@
       {
         "when": "Everything else",
         "job_type": "text2image_soul_character",
-        "rationale": "免费兜底。生产无 text2image_media_3.0，纯文生图不能落到 image2image 上。",
+        "rationale": "免费兜底，且不分会员等级：纯文生图只有 ToMoviee Lite 一档，生产无 text2image_media_3.0，也不能落到 image2image 上。",
         "stability": "stable"
       }
     ],
@@ -147,9 +147,15 @@
         "stability": "stable"
       },
       {
-        "when": "Everything else, including character consistency, outfit swap and character editing",
+        "when": "Everything else, including character consistency, outfit swap and character editing, AND `account status` reports a membership `level` of `standard` or `premium`",
         "job_type": "image2image_media_3.0",
-        "rationale": "V0.5 需求文档的图像全局默认 ToMoviee 3.0 Pro。",
+        "rationale": "V0.5 需求文档的图像全局默认 ToMoviee 3.0 Pro；该档对会员免费（tier vip_free）。",
+        "stability": "stable"
+      },
+      {
+        "when": "Everything else, including character consistency, outfit swap and character editing, AND the account is not a member or the membership level is unknown",
+        "job_type": "image2image_media_1.0",
+        "rationale": "非会员用 ToMoviee 3.0 Pro 会扣费，而 ToMoviee Lite 对所有人免费（tier free），因此默认推荐 Lite；用户明确要更好效果时再抬到 3.0 Pro 并走扣费确认。",
         "stability": "stable"
       }
     ],
