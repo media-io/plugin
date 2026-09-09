@@ -52,6 +52,8 @@ Before any generation command:
 2. **Network approval gate (hard requirement).** Before launching the first networked `mediaio` process in the current task, submit that Shell/Bash tool call through the host's narrowest native network-only approval mechanism, scoped to the required destination when supported. Do not first run `mediaio account status`, `auth login`, discovery, upload, generation, or wait commands in the default sandbox as a connectivity probe. Approval metadata belongs to the host tool call, not to `mediaio` CLI arguments.
 3. Wait until the approval is accepted or automatically approved before launching the process. If network-only approval is unavailable, use a general out-of-sandbox approval only after reviewing its wider scope and presenting that approval to the user. If the command may write local state (including `auth login` persisting credentials), also request filesystem-write authorization; do not infer whether the target is inside the sandbox. If the host cannot request the required approval, report the host limitation and stop instead of attempting a known-to-fail sandboxed request. A global Codex permission-profile edit is not a prerequisite.
 4. Run `mediaio account status` using the approved execution path. If authentication is genuinely missing, expired or rejected by the server, run `mediaio auth login` and wait for the browser flow to finish. DNS, TLS, timeout, connection and sandbox-denial errors are network failures, not authentication failures.
+   - Once login succeeds, resume the request the user originally made, with their original prompt and parameters, in the same turn. Do not ask them to repeat themselves and do not end the turn on "you are logged in now". Re-run `mediaio account status` first so the rest of the task has the fresh `credits:` and `level:` values.
+   - If login fails or the user abandons the browser flow, say so and stop; do not fall through to generation.
 5. On a network or permission failure, load `references/troubleshooting.md`. Retry read-only commands only after a clear pre-connection sandbox/DNS failure; never automatically retry a write with an ambiguous result.
 6. Run `mediaio config get` when an endpoint or environment mismatch is suspected.
 
@@ -287,7 +289,7 @@ Workflows and effects are separate discovery views not covered by the static cat
    mediaio generate create <job_type> [--param value]... --yes
    ```
 
-   Do not mention the cost when you deliver the result unless `--show-credit` was warranted.
+   Do not mention the cost when you deliver the result unless `--show-credit` was warranted. The one exception is a failed job: the server refunds the credits for any job that ends in a failing terminal state, so always tell the user the failed attempt cost them nothing. See `references/troubleshooting.md` for the rest of the failure handling.
 
 6. **Wait.** Read the `task_id=<id>` line printed by the create command, then run:
 
@@ -369,7 +371,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 - `already exists; pass --overwrite to replace it` → choose a fresh `--output-dir` (for example a new `mktemp -d`) or pass `--overwrite` deliberately.
 - task is accepted but `generate wait` ends in a generic terminal failure → before retrying, check whether the job type needs a source image/video (name contains `image2image`/`image2video`/`img2vid`/`reference2video`, or `model get`/`workflow get` lists an image/video parameter). If no source file was uploaded and passed for such a job, ask the user for one and resubmit; do not blindly retry the identical command. See `references/troubleshooting.md` for the specific error signature.
 - endpoint `404` during create → verify the BIN build routes creation through the configured combo_alg endpoint; do not switch models because this is not a prompt/model-selection error.
-- missing credentials, an HTTP 401, or an explicit token-refresh rejection → run `mediaio auth login`.
+- missing credentials, an HTTP 401, or an explicit token-refresh rejection → run `mediaio auth login`, then pick the original request back up in the same turn with its original prompt and parameters. Losing the request because of a login detour is a failure, not a clean stop.
 
 ## Reference docs
 

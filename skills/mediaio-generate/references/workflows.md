@@ -54,6 +54,8 @@ mediaio generate query <workflow_name> <task_id>
 
 The cost is computed server-side for the signed-in account, so `estimate: 0 credit(s)` / `free: yes` is authoritative — this request costs nothing. There is no "free quota" or partial-free state: it is either free or charged. `free: no - this model is free for members` means a membership would make it free; report that as an option, do not switch models on your own.
 
+A charge is only kept for a job that succeeds. The server refunds the credits for any job that ends in a failing terminal state, so a failure never costs the user anything — say so when you report one.
+
 `mediaio workflow get <workflow_name>` still prints the raw credit configuration for diagnostics.
 
 ## Historical inventory
