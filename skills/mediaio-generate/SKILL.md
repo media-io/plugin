@@ -140,6 +140,17 @@ Then say, in one short line, what the balance is and hand over the printed `url`
 
 Never type a media.io URL from memory and never edit one you were given: the destination and its tracking parameters are owned by the binary and can change without a skill update. See the product-page handoff rules below.
 
+### Insufficient permission or credits — membership-aware fallback
+
+Trigger: `generate estimate`, a `--show-credit` submission, or `generate create` is rejected because the model requires a membership tier the account does not have, or the balance cannot cover the job.
+
+1. Check the account's membership tier: `mediaio account status` prints a `level:` line (`free` / `standard` / `premium`). `free` means the account is not a paying member.
+2. Build your suggestion around that tier — both branches require the user's explicit go-ahead before you act, and both mention the same two options, just in a different order and with different detail:
+   - **Non-member (`free`)** — lead with the downgrade. Name the specific fallback `job_type` for this job from the fallback chain in [references/model-catalog.md](references/model-catalog.md) (section 4), so the user knows exactly what they'd get. Mention getting more credits second, with the `get credits:` link.
+   - **Member (`standard`/`premium`)** — lead with getting more credits (the `get credits:` link). Mention that an alternative/cheaper model is also an option second, but do not name a specific `job_type` — members do not need to be steered toward the downgraded tier by name.
+3. Wait for an explicit yes before doing anything. If the user picks the fallback model, re-run `generate estimate` for the new `job_type` (its cost differs) and confirm again per the normal credit rules before submitting. If the user says they'll top up credits instead, stop and wait — do not resubmit on your own once the balance changes; let them tell you they're ready.
+4. Never switch models or resubmit without a fresh explicit confirmation, regardless of tier.
+
 ### Other credit rules
 
 - **Never use `--skip-estimate`.** It is for interactive human terminals only and disables the tamper check.
@@ -187,7 +198,7 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 | `generate wait` / `generate query` (success) | `task_id=`, `uni_fun_code=`, `algorithm_name=`, `module=`, `status=`, `status_code=`, `files=` lines, then `# ...` metadata comments and one bare result URL per line |
 | `generate wait` / `generate query` (failure) | `status=`, `status_code=`, `reason_code=`, `reason_label=`, `reason=` lines |
 | `generate list` | one tab-separated row per task (`task_id`, `status`, `uni_fun_code`, `algorithm_name`, `module`, `begin`, `end`), no URLs |
-| `generate estimate` | `job type:`, `rule type:`, `billed fields:`, `estimate:`, `balance:`, `note:` lines, plus a `get credits:` line when the balance is short |
+| `generate estimate` | `job type:`, `estimate:`, `free:`, `balance:`, `note:` lines, plus a `get credits:` line when the balance is short |
 | `link get` / `link list` | `purpose:`, `title:`, `url:` lines / one tab-separated `purpose`, `title`, `url` row per destination |
 | `generate download` | one local file path per non-comment line, preceded by a `# uni_fun_code <code>` line and per-file `# file[N] ...` metadata and `# url[N] <url>` lines |
 
@@ -201,8 +212,9 @@ A signed Media.io result URL carries a high-entropy storage credential. Rewritin
 
 1. Read `references/model-catalog.md`.
 2. Pick the `job_type` from its section 3 routing table — match top-down and **stop at the first hit**. If the user gave no source image, use the text-to-image table; if they attached one, use the image-to-image table.
-3. Run `mediaio model get <job_type>` for the parameter schema. This is a required pre-submission step, not a discovery step: the catalog never promises parameters, and you must not infer them from it.
-4. Continue with the normal upload / estimate / submit / wait flow.
+3. Some image-to-image rows are conditioned on membership tier. When you reach one, use the `level:` value already printed by the `mediaio account status` you ran in the startup sequence — do not run an extra command for it, and treat a missing or unrecognised `level` as "not a member". Pure text-to-image has a single ToMoviee tier, so membership never changes that pick.
+4. Run `mediaio model get <job_type>` for the parameter schema. This is a required pre-submission step, not a discovery step: the catalog never promises parameters, and you must not infer them from it.
+5. Continue with the normal upload / estimate / submit / wait flow.
 
 ### When you may fall back to `model list`
 
@@ -345,7 +357,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 
 - `flag provided but not defined: -wait` → remove `--wait`, submit, then call `mediaio generate wait <task_id>`.
 - `credit confirmation required: rerun with --yes ...` → `--yes` was missing. Add it. If the user is cost-sensitive, add `--show-credit` too, and get their approval before resubmitting. Never satisfy this error with `--skip-estimate` or by turning on auto-confirm.
-- a submission or estimate rejected because the balance cannot cover the job → do not retry and do not switch to a cheaper model on your own. Report the balance, hand over the `get credits:` line the command printed (or run `mediaio link get credits`), and wait for the user.
+- a submission or estimate rejected because the balance cannot cover the job, or because the model requires a membership tier the account does not have → do not retry and do not switch to a cheaper model on your own. Follow "Insufficient permission or credits — membership-aware fallback" above and wait for the user.
 - `credit estimate mismatch: --expect-credit X but the current parameters estimate to Y` → the parameters changed after the approval. Show Y to the user and ask again; never silently resubmit with Y.
 - `--skip-estimate is only allowed on an interactive terminal` → drop the flag so the cost is printed.
 - `--json is not supported; use --output json instead` or `flag provided but not defined: -json` → drop `--json`; you should not be passing an output flag at all.
