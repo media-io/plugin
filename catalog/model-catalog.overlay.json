@@ -3,6 +3,7 @@
   "_readme": [
     "人工策展层。sync 只覆盖 catalog/model-registry.snapshot.json，本文件跨同步持久，脚本只读不写。",
     "语言规则：why 与 when 会逐字渲染进分发给用户的产物，必须写英文；rationale / _readme / notes 不进产物，维持中文。",
+    "fallback_notes 同样逐字渲染进产物，必须写英文。",
     "job_type 必须从快照逐字节复制：含空格与命名错位都是生产真实取值，不得规范化。",
     "stability=stable 的规则在同步时静默继承；stability=review 的会被列入待确认清单。",
     "tier 为人工标注，registry 无此字段；unknown 表示尚未与产品/服务端确认。",
@@ -19,6 +20,9 @@
     "image2image": "image2image_media_1.0",
     "video": "image2video_tomoviee_2.0_fast"
   },
+  "fallback_notes": [
+    "The image-to-image `From` column is the member default. Section 3 already routes a non-member to `image2image_media_1.0`, which is the fallback target itself, so for them there is nothing cheaper to switch to — offer credits or a membership instead of proposing another downgrade."
+  ],
   "featured": [
     {
       "job_type": "text2image_soul_character",

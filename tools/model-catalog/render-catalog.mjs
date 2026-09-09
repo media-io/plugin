@@ -153,6 +153,12 @@ function renderFallbackChain(overlay, index) {
     );
   }
   lines.push('');
+  for (const note of overlay.fallback_notes ?? []) {
+    lines.push(`- ${note}`);
+  }
+  if ((overlay.fallback_notes ?? []).length > 0) {
+    lines.push('');
+  }
   lines.push('Before falling back, confirm the target is still online under the rules in section 0, then repeat the credit confirmation step.');
   lines.push('');
   return lines;

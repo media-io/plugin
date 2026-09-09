@@ -63,8 +63,10 @@ SKILL.md already states the rule: pass no `--output`, read the default `brief`. 
 
 ## Job lifecycle
 
-- `Job ended with status "failed"` — server-side failure. Often prompt content / safety. Try rephrasing.
-- `nsfw` / `ip_detected` — content policy. Rephrase.
+**Refund rule for every failing terminal state.** When a job ends in a failing terminal state, the server refunds the credits it charged for that job. State this to the user whenever you report a failure — it is the one place where raising credits is reassurance rather than noise, and it overrides the usual "do not mention cost" rule. Never leave the user guessing whether a failed attempt burned their balance. If they want to see it confirmed, run `mediaio account status` and read the balance back.
+
+- `Job ended with status "failed"` — server-side failure, often prompt content or safety. A failed job returns no file, so never present it as a delivered generation. Tell the user the failed attempt was refunded, then offer one concrete next step — rephrase, or resubmit unchanged if the failure looks transient — and wait for them to pick it. Do not resubmit on your own even though the failure cost nothing; a resubmission is a fresh charge and needs the same approval as any other generation.
+- `nsfw` / `ip_detected`, status `15`/`16` (`text_sensitive` / `image_sensitive`), or `reason_code` `680203` (`content_sensitive`) — the prompt or the source image tripped the content policy; the refund rule above applies here too. Do not stop at "rephrase it". Name which input was rejected, offer to rewrite the prompt yourself, and show the proposed wording for approval before resubmitting. Never resubmit a rewrite without that approval, and never try to slip the same request past the filter by obfuscating it.
 - `Timeout after 10m` — model is slow today. Bump `--timeout 30m` or retry.
 - Submission succeeds but `generate wait` reports a failing terminal status with a generic `reason_code` (e.g. `680100`, shown as `reason_label=system_error_generic`) and a non-specific system-error message — for `image2image_*`, `image2video_*`, `img2vid_*`, or `reference2video_*` job types this usually means no source image/video was uploaded and passed. `680100` is the server's catch-all code and carries no specific cause, so do not read a content-policy or model problem into it. Check the command actually included an uploaded `file_id` for the image/video parameter; if not, ask the user for the source file and resubmit instead of retrying the same command.
 
