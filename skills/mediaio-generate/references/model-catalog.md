@@ -95,6 +95,8 @@ Triggers: the server reports insufficient permission or insufficient credits, or
 | Image to image (with reference image) | `image2image_media_3.0` | `image2image_media_1.0` | Re-run estimate after switching, then submit |
 | Video | `image2video_tomoviee_3.0` | `image2video_tomoviee_2.0_fast` | Re-run estimate after switching, then submit |
 
+- The image-to-image `From` column is the member default. Section 3 already routes a non-member to `image2image_media_1.0`, which is the fallback target itself, so for them there is nothing cheaper to switch to — offer credits or a membership instead of proposing another downgrade.
+
 Before falling back, confirm the target is still online under the rules in section 0, then repeat the credit confirmation step.
 
 ## 5. Full index
