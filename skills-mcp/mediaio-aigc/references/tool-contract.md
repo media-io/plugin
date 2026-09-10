@@ -153,7 +153,7 @@ An unrecognised status code is reported as `unknown` and treated as a terminal f
 | --- | --- |
 | `url` | Full-resolution signed URL. Use verbatim; never edit or re-encode |
 | `preview_url` | Compressed preview. This is what gets inlined |
-| `asset_id` | The result in the user's drive. A generation parameter will not accept it — to chain, find the result with `list_assets` and pass that entry's `file_id` |
+| `asset_id` | The result in the user's drive. A generation parameter will not accept it — call `list_assets(asset_id: ...)` to get the matching `file_id` |
 | `mime`, `type`, `width`, `height`, `size_bytes`, `duration_ms` | Metadata |
 | `storage_path` | Fallback when the upstream gave only a relative storage path and no downloadable URL. There is nothing you can fetch from it |
 
@@ -171,7 +171,9 @@ This is the only safe way to check what happened after a `RESULT_UNKNOWN`.
 
 ## list_assets
 
-Inputs `keyword`, `media_types`, `page`, `page_size` (max 200). Returns `assets[]` and `total`.
+Inputs `keyword`, `asset_id`, `media_types`, `page`, `page_size` (max 200). Returns `assets[]` and `total`.
+
+`asset_id` filters to one exact asset — that is how you turn a finished task's `outputs[].asset_id` into the `file_id` a generation parameter needs.
 
 | Field | Notes |
 | --- | --- |

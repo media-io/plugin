@@ -20,9 +20,13 @@ When several assets match, show `name` (and dimensions when relevant) and let th
 
 ### 2. A previous task's output
 
-Every generation result is already an asset in the user's drive, but `get_generation` returns only `outputs[].asset_id`, which a generation parameter will not accept. To chain, look the result up with `list_assets` and pass the matching entry's `file_id`.
+Every generation result is already an asset in the user's drive, but `get_generation` returns only `outputs[].asset_id`, which a generation parameter will not accept. Resolve it in one call:
 
-Do not offer to "download and re-upload" between steps — the file is already in the drive.
+```
+list_assets(asset_id: "1944814200021450800")
+```
+
+and pass the returned `file_id`. Do not offer to "download and re-upload" between steps — the file is already in the drive.
 
 ### 3. A local file — `create_upload` → PUT → `complete_upload`
 
