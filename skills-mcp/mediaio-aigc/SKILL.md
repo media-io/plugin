@@ -149,7 +149,7 @@ When `inline_images > 0`, the result images are already inlined in the tool resu
 A capability's source media must be an asset in the user's Media.io space, and every source parameter takes its **`file_id`** — a 32-character hex string. `asset_id` is a 19-digit drive bookkeeping id; a task submitted with one is accepted and charged, then fails with `unknown_reason / not found data`. There are three ways to get a `file_id`.
 
 - **Already in the drive.** Find it with `list_assets` and pass its `file_id` using the exact parameter name `describe_capability` shows.
-- **A previous task's output.** `get_generation` returns only `outputs[].asset_id`, which a generation parameter will not accept. To chain, locate the result with `list_assets` and pass that entry's `file_id`.
+- **A previous task's output.** `get_generation` returns only `outputs[].asset_id`, which a generation parameter will not accept. Call `list_assets(asset_id: ...)` to resolve it to a `file_id`, then pass that.
 - **A local file.** Upload it with the three-step flow below, then use the `file_id` that comes back.
 - Capabilities named like `image2image_*`, `image2video_*`, `*_i2i`, `*_i2v` and `reference2video_*`, and any capability whose schema lists an image, video or reference parameter, need a source asset even when the schema does not mark it required.
 
