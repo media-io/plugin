@@ -7,8 +7,9 @@ description: |
   server. Use for text-to-image, image-to-image, text-to-video,
   image-to-video and reference-to-video requests.
   Generation runs in the cloud and needs no local CLI, binary or install
-  step. Uploading a local file is not available on this path yet, so any
-  source media must already exist in the user's Media.io space.
+  step. A local file can be uploaded into the user's Media.io space with
+  `create_upload` and `complete_upload`; the file bytes go straight to
+  storage over a presigned URL and never pass through the MCP server.
   Select the capability from the bundled static catalog
   (`references/model-catalog.md`) and copy every `capability_code` byte for
   byte — some contain a literal space, and display names often do not match
@@ -34,6 +35,8 @@ There is no CLI, no local binary, no installation step and no network-approval g
 | `list_capabilities` | Live capability discovery — only on a trigger in the discovery guardrail |
 | `describe_capability` | Parameter schema. **Required before every submission** |
 | `list_assets` | Source media the user already has in their Media.io space |
+| `create_upload` | Step 1 of uploading a local file — returns a presigned URL, or reports a rapid-upload hit |
+| `complete_upload` | Step 3 of uploading a local file — registers the uploaded object and returns `asset_id` |
 | `estimate_generation` | Price query. Optional — `create_generation` never requires it |
 | `create_generation` | Submit the job, returns `task_id` |
 | `get_generation` | Poll tasks by `task_id` until `terminal` is true — takes up to 50 at once |
@@ -57,7 +60,7 @@ There is no cancellation capability on this path. If the user wants to stop a ru
 1. `get_account` — confirm the balance covers the job and note `membership.is_member`. If the tool reports an authorization error, follow the errors section and stop.
 2. Read `references/model-catalog.md` and pick the `capability_code` from its routing table. Static first — see the discovery guardrail.
 3. `describe_capability` — take the parameter schema from here. **Never skip this**; the catalog does not promise parameters. `workflow_default: true` does not mean a parameter can be omitted.
-4. If the capability needs source media, resolve it with `list_assets`. If the user only has a local file, stop and read the source media section below.
+4. If the capability needs source media, resolve it with `list_assets`. If the user only has a local file, upload it first — see the source media section below.
 5. Decide the credit mode. Only "Approve first" adds a turn before submitting.
 6. `create_generation` — read `task_id` and `charged_credit`.
 7. `get_generation` — poll until `terminal` is true. Judge completion from `status_label` and `terminal`; never parse the numeric `status`. On failure read `failure.label` and `failure.reason`.
@@ -143,14 +146,33 @@ When `inline_images > 0`, the result images are already inlined in the tool resu
 
 ## Source media
 
-**Local file upload is not available on this path yet.** The capability is under development.
+A capability's source media must be an asset in the user's Media.io space. There are three ways to get one.
 
-- Source media must already exist in the user's Media.io space. Find it with `list_assets` and pass its `asset_id` using the exact parameter name `describe_capability` shows.
+- **Already in the drive.** Find it with `list_assets` and pass its `asset_id` using the exact parameter name `describe_capability` shows.
 - **A previous task's output is already an asset.** Pass `outputs[].asset_id` from `get_generation` straight into the next task — generate an image then animate it, with no upload, download, or detour through the user.
-- When the user offers a local file, or attaches one to the conversation, tell them plainly that uploading from this path is still under development, and ask whether they want to use something from their Media.io space instead. Do not submit the job and let the server fail on a missing source.
+- **A local file.** Upload it with the three-step flow below, then use the `asset_id` that comes back.
 - Capabilities named like `image2image_*`, `image2video_*`, `*_i2i`, `*_i2v` and `reference2video_*`, and any capability whose schema lists an image, video or reference parameter, need a source asset even when the schema does not mark it required.
 
-See [references/media-inputs.md](references/media-inputs.md) for asset selection details.
+### Uploading a local file
+
+The file bytes never go through the MCP server. `create_upload` hands you a presigned URL, you PUT the bytes to storage yourself, then `complete_upload` registers the result.
+
+1. **Hash the file locally.** `content_hash` is the SHA-1 of the whole file; `pre_hash` is the SHA-1 of its first 1 MiB. For a file of 1 MiB or less the two are identical. Also read the exact byte size.
+2. **`create_upload`** with `file_name`, `file_size`, `content_hash`, `pre_hash`, and optionally `content_type`, `dest_path`, `description`.
+   - `rapid_upload: true` and `state: "completed"` means the drive already had that exact content. **You are done** — take `asset_id` and do not PUT anything, do not call `complete_upload`.
+   - Otherwise you get `upload_url`, `upload_method`, `upload_headers` and `expires_at`.
+3. **PUT the raw bytes** to `upload_url` with `upload_method`, sending every entry of `upload_headers` exactly as given. **Do not add, drop, rename, reorder or re-case those headers, and do not rewrite the URL** — the storage service validates a signature over them and answers 403 on any edit.
+4. **`complete_upload`** with the returned `upload_id`. It verifies the stored object against the declared size and hash, registers the drive file, and returns `file_id`, `asset_id` and `size`. It is idempotent, so a repeat call is safe.
+5. Pass the returned `asset_id` into the generation parameter.
+
+Rules:
+
+- Never read the file into the conversation, never base64 it, and never pass file content to any Media.io tool. These tools accept metadata and hashes only.
+- If the host cannot compute a SHA-1 or perform an HTTP PUT, say so and ask the user to upload the file from the Media.io web app instead. Do not fake the hashes.
+- If the PUT does not finish before `expires_at`, call `create_upload` again for a fresh URL. Do not retry `complete_upload` against an expired ticket.
+- Do not paste a public URL into an image parameter or describe the image in the prompt as a substitute for uploading it.
+
+See [references/media-inputs.md](references/media-inputs.md) for the full upload and asset-selection details.
 
 ## Discovery guardrail — static catalog first
 
@@ -195,6 +217,12 @@ Every failure comes back as a structured error with `code`, `message`, `retryabl
 - `RATE_LIMITED` → back off and retry once.
 - `CAPABILITY_NOT_FOUND` → the code was altered, or the catalog is stale. Re-read it from the catalog byte for byte before calling `list_capabilities`.
 - `INVALID_PARAMETER` → call `describe_capability` and pass only exposed parameters. Do not guess a fix.
+- `UPLOAD_NOT_READY` → the bytes have not landed in storage yet. Finish or retry the PUT, then call `complete_upload` again. This is the only upload code worth retrying.
+- `UPLOAD_EXPIRED` → the presigned ticket expired. Start over with `create_upload`; re-PUTting to the old URL cannot work.
+- `UPLOAD_NOT_FOUND` → the `upload_id` is wrong or already discarded. Start over with `create_upload`.
+- `UPLOAD_TOO_LARGE` → the file exceeds the single-object limit. Tell the user to upload it from the Media.io web app instead.
+- `UPLOAD_PLATFORM_UNSUPPORTED` → this drive space has no presigned upload. Tell the user to upload from the Media.io web app; do not look for another tool.
+- A 403, `SignatureDoesNotMatch` or `InvalidAccessKeyId` from the PUT itself is not an MCP error. It means the URL or the headers were altered. Re-run `create_upload` and send the new values verbatim.
 - `AUTH_REQUIRED`, `AUTH_EXPIRED`, `AUTH_UPSTREAM_EXPIRED` → the session needs re-authorization through the host's OAuth flow. Tell the user to reconnect the Media.io server; there is no login command you can run.
 - `UPSTREAM_TIMEOUT`, `UPSTREAM_UNAVAILABLE` → retryable. Retry a read once; never auto-retry a submission.
 

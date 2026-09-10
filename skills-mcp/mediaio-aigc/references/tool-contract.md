@@ -68,6 +68,51 @@ Returns `task_id`, `charged_credit`, `idempotent_replay`, `poll_after_ms`, `trac
 
 `idempotent_replay: true` means this call replayed an existing task rather than creating a new one — nothing extra was charged. Do not report it as a second job.
 
+## create_upload
+
+Step 1 of uploading a local file. Takes metadata and hashes only — **never file bytes**.
+
+| Input | Notes |
+| --- | --- |
+| `file_name` | Bare file name with extension. A path separator is rejected; put the folder in `dest_path` |
+| `file_size` | Exact byte size. The server verifies it against the stored object at `complete_upload` |
+| `content_hash` | SHA-1 hex digest of the whole file, 40 characters. Also the rapid-upload deduplication key |
+| `pre_hash` | SHA-1 hex digest of the first 1 MiB. Equal to `content_hash` for files of 1 MiB or less |
+| `content_type` | Optional MIME type. Omit when unsure |
+| `dest_path` | Optional destination folder such as `/MCP Uploads`. Missing folders are created |
+| `description` | Optional note stored on the drive file |
+| `expires_in` | Optional URL lifetime in seconds, 1–3600, default 900 |
+
+| Field | Notes |
+| --- | --- |
+| `upload_id` | Ticket id. Pass it to `complete_upload` |
+| `state` | `completed` (rapid upload) or `awaiting_bytes` |
+| `rapid_upload` | `true` means the drive already held that exact content. **Nothing to transfer** |
+| `next_step` | `done` or `put_bytes_then_complete_upload`. **Branch on this** |
+| `file_id`, `asset_id` | Present only on a rapid-upload hit. `asset_id` is what generation parameters take |
+| `upload_url` | Presigned URL, present only when `state` is `awaiting_bytes`. Opaque — use verbatim |
+| `upload_method` | HTTP method for the transfer, normally `PUT` |
+| `upload_headers` | Headers to reproduce **exactly** on the PUT. Adding, dropping, renaming or re-casing any of them breaks the signature |
+| `expires_at` | Epoch second after which the URL is dead. Past it, call `create_upload` again |
+| `trace_id` | Correlation id |
+
+The response never exposes the bucket, object key, endpoint or any STS credential. Those are storage internals; do not try to reconstruct them.
+
+## complete_upload
+
+Step 3 of uploading a local file. Input `upload_id`. Call it only after the PUT returned a 2xx, and never after a rapid-upload hit.
+
+| Field | Notes |
+| --- | --- |
+| `upload_id` | Echoed back |
+| `state` | Always `completed` |
+| `file_id` | The registered drive file |
+| `asset_id` | **The value you pass into a generation parameter** |
+| `size` | Registered byte size |
+| `trace_id` | Correlation id |
+
+Idempotent: repeating the call for an already completed upload returns the same result and creates no duplicate.
+
 ## get_generation
 
 Input `task_ids` (1–50). Returns `tasks[]`, `poll_after_ms` and `trace_id`. `poll_after_ms` is `0` when every task in the response is terminal, otherwise `3000`.
