@@ -6,21 +6,23 @@ How source media works on the MCP path. Load it whenever a capability needs an i
 
 Three sources. Two are already in the cloud; the third is a local file you upload first.
 
+**`file_id` is the only id a generation parameter accepts.** It is a 32-character hex string. `asset_id` is a 19-digit drive bookkeeping id; passing it into a generation parameter makes the task fail with `unknown_reason / not found data` after it has already been accepted and charged.
+
 ### 1. The user's drive — `list_assets`
 
 ```
 list_assets(keyword: "poster", media_types: ["image"], page_size: 20)
 ```
 
-Each asset carries `asset_id`, `name`, `ext`, `media_type`, `size`, `width`, `height`, `duration`, `thumbnail`. **`asset_id` is the value you pass** as the source parameter.
+Each asset carries `file_id`, `asset_id`, `name`, `ext`, `media_type`, `size`, `width`, `height`, `duration`, `thumbnail`. **`file_id` is the value you pass** as the source parameter.
 
 When several assets match, show `name` (and dimensions when relevant) and let the user pick. Do not silently take the first hit.
 
-### 2. A previous task's output — `outputs[].asset_id`
+### 2. A previous task's output
 
-Every generation result is already an asset in the user's drive. `outputs[].asset_id` from `get_generation` can be passed straight into the next task's source parameter — **no upload, no download, no round trip through the user**.
+Every generation result is already an asset in the user's drive, but `get_generation` returns only `outputs[].asset_id`, which a generation parameter will not accept. To chain, look the result up with `list_assets` and pass the matching entry's `file_id`.
 
-This is how you chain: generate an image, then animate it; generate a frame, then use it as a video reference. Do not offer to "save and re-upload" between steps.
+Do not offer to "download and re-upload" between steps — the file is already in the drive.
 
 ### 3. A local file — `create_upload` → PUT → `complete_upload`
 
@@ -45,7 +47,7 @@ The response always carries `upload_id`, `state`, `rapid_upload` and `next_step`
 
 | Outcome | What you get | What to do |
 | --- | --- | --- |
-| `state: "completed"`, `rapid_upload: true`, `next_step: "done"` | `file_id`, `asset_id` | **Finished.** The drive already held that exact content. Do not PUT, do not call `complete_upload` |
+| `state: "completed"`, `rapid_upload: true`, `next_step: "done"` | `file_id`, `asset_id` | **Finished.** The drive already held that exact content. Do not PUT, do not call `complete_upload`. Use `file_id` |
 | `state: "awaiting_bytes"`, `next_step: "put_bytes_then_complete_upload"` | `upload_url`, `upload_method`, `upload_headers`, `expires_at` | Go to step 2 |
 
 #### Step 2 — PUT the bytes
@@ -68,8 +70,8 @@ Call it with `upload_id` only, and only after the PUT returned a 2xx. The server
 | --- | --- |
 | `upload_id` | Echoed back |
 | `state` | Always `completed` |
-| `file_id` | The drive file id |
-| `asset_id` | **The value you pass into the generation parameter** |
+| `file_id` | **The value you pass into the generation parameter** |
+| `asset_id` | Drive bookkeeping id. Not accepted as a generation input |
 | `size` | Registered byte size |
 
 It is idempotent: calling it again for an already completed upload returns the same result and does not create a duplicate file.

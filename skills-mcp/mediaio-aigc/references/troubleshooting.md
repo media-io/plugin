@@ -55,11 +55,12 @@ A task that is accepted and then ends in a failing terminal state is **not** an 
 | `drive_space_full`, `storage_overrun` | The user's drive is full | Tell the user to free up space. Retrying will fail the same way |
 | `timeout`, `server_timeout`, `server_fail`, `abnormal` | Server-side failure | A single retry is reasonable. Ask first if the conversation has escalated to Report or Approve first, since a retry is a new charge |
 | `region_not_supported` | The capability is unavailable in the user's region | Stop; there is no workaround from this path |
+| `unknown_reason` with `reason: "not found data"` | The source media id was not resolvable | Almost always an `asset_id` (19 digits) passed where a `file_id` (32 hex chars) belongs. Re-read the source parameter value: take `file_id` from `list_assets` or `complete_upload`. Do not resubmit the same id |
 | `unknown` | An unrecognised status code, treated as terminal failure | Report the raw `status` value and stop polling |
 
 **Every failing terminal state is refunded by the server.** Always tell the user that a failed attempt cost them nothing.
 
-Before retrying any generic failure on an `image2*`/`*_i2i`/`*_i2v`/`reference2video_*` capability, check whether a source asset was actually supplied. A missing source often surfaces as a generic failure rather than a parameter error.
+Before retrying any generic failure on an `image2*`/`*_i2i`/`*_i2v`/`reference2video_*` capability, check whether a source asset was actually supplied, and that what was supplied is a `file_id` rather than an `asset_id`. A missing or mistyped source often surfaces as a generic failure rather than a parameter error.
 
 ## Result download failures
 
@@ -84,4 +85,4 @@ A failure on the PUT to `upload_url` is a storage-side response, not an MCP erro
 - `idempotent_replay: true` — the call replayed an existing task. Nothing extra was charged; do not report it as a second job.
 - `missing_capability_codes` non-empty in `describe_capability` — those codes do not exist. Check them before assuming the lookup succeeded.
 - `membership` absent from `get_account` — the tier is unknown. Treat it as not a member; do not claim the account is free.
-- `rapid_upload: true` with `next_step: "done"` from `create_upload` — the upload already succeeded because the drive held identical content. Take `asset_id` and move on; do not PUT and do not call `complete_upload`.
+- `rapid_upload: true` with `next_step: "done"` from `create_upload` — the upload already succeeded because the drive held identical content. Take `file_id` and move on; do not PUT and do not call `complete_upload`.

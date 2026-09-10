@@ -89,7 +89,7 @@ Step 1 of uploading a local file. Takes metadata and hashes only — **never fil
 | `state` | `completed` (rapid upload) or `awaiting_bytes` |
 | `rapid_upload` | `true` means the drive already held that exact content. **Nothing to transfer** |
 | `next_step` | `done` or `put_bytes_then_complete_upload`. **Branch on this** |
-| `file_id`, `asset_id` | Present only on a rapid-upload hit. `asset_id` is what generation parameters take |
+| `file_id`, `asset_id` | Present only on a rapid-upload hit. `file_id` is what generation parameters take |
 | `upload_url` | Presigned URL, present only when `state` is `awaiting_bytes`. Opaque — use verbatim |
 | `upload_method` | HTTP method for the transfer, normally `PUT` |
 | `upload_headers` | Headers to reproduce **exactly** on the PUT. Adding, dropping, renaming or re-casing any of them breaks the signature |
@@ -106,8 +106,8 @@ Step 3 of uploading a local file. Input `upload_id`. Call it only after the PUT 
 | --- | --- |
 | `upload_id` | Echoed back |
 | `state` | Always `completed` |
-| `file_id` | The registered drive file |
-| `asset_id` | **The value you pass into a generation parameter** |
+| `file_id` | **The value you pass into a generation parameter** |
+| `asset_id` | Drive bookkeeping id. Not accepted as a generation input |
 | `size` | Registered byte size |
 | `trace_id` | Correlation id |
 
@@ -153,7 +153,7 @@ An unrecognised status code is reported as `unknown` and treated as a terminal f
 | --- | --- |
 | `url` | Full-resolution signed URL. Use verbatim; never edit or re-encode |
 | `preview_url` | Compressed preview. This is what gets inlined |
-| `asset_id` | The result in the user's drive. **Pass it straight into a follow-up task** — no upload needed |
+| `asset_id` | The result in the user's drive. A generation parameter will not accept it — to chain, find the result with `list_assets` and pass that entry's `file_id` |
 | `mime`, `type`, `width`, `height`, `size_bytes`, `duration_ms` | Metadata |
 | `storage_path` | Fallback when the upstream gave only a relative storage path and no downloadable URL. There is nothing you can fetch from it |
 
@@ -175,7 +175,8 @@ Inputs `keyword`, `media_types`, `page`, `page_size` (max 200). Returns `assets[
 
 | Field | Notes |
 | --- | --- |
-| `asset_id` | Pass this as the source-media parameter value |
+| `file_id` | **Pass this as the source-media parameter value** |
+| `asset_id` | Drive bookkeeping id. Not accepted as a generation input |
 | `name`, `ext`, `media_type` | Identification |
 | `size`, `width`, `height`, `duration` | Metadata |
 | `thumbnail` | Preview URL |

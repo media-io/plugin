@@ -36,7 +36,7 @@ There is no CLI, no local binary, no installation step and no network-approval g
 | `describe_capability` | Parameter schema. **Required before every submission** |
 | `list_assets` | Source media the user already has in their Media.io space |
 | `create_upload` | Step 1 of uploading a local file — returns a presigned URL, or reports a rapid-upload hit |
-| `complete_upload` | Step 3 of uploading a local file — registers the uploaded object and returns `asset_id` |
+| `complete_upload` | Step 3 of uploading a local file — registers the uploaded object and returns `file_id` |
 | `estimate_generation` | Price query. Optional — `create_generation` never requires it |
 | `create_generation` | Submit the job, returns `task_id` |
 | `get_generation` | Poll tasks by `task_id` until `terminal` is true — takes up to 50 at once |
@@ -146,11 +146,11 @@ When `inline_images > 0`, the result images are already inlined in the tool resu
 
 ## Source media
 
-A capability's source media must be an asset in the user's Media.io space. There are three ways to get one.
+A capability's source media must be an asset in the user's Media.io space, and every source parameter takes its **`file_id`** — a 32-character hex string. `asset_id` is a 19-digit drive bookkeeping id; a task submitted with one is accepted and charged, then fails with `unknown_reason / not found data`. There are three ways to get a `file_id`.
 
-- **Already in the drive.** Find it with `list_assets` and pass its `asset_id` using the exact parameter name `describe_capability` shows.
-- **A previous task's output is already an asset.** Pass `outputs[].asset_id` from `get_generation` straight into the next task — generate an image then animate it, with no upload, download, or detour through the user.
-- **A local file.** Upload it with the three-step flow below, then use the `asset_id` that comes back.
+- **Already in the drive.** Find it with `list_assets` and pass its `file_id` using the exact parameter name `describe_capability` shows.
+- **A previous task's output.** `get_generation` returns only `outputs[].asset_id`, which a generation parameter will not accept. To chain, locate the result with `list_assets` and pass that entry's `file_id`.
+- **A local file.** Upload it with the three-step flow below, then use the `file_id` that comes back.
 - Capabilities named like `image2image_*`, `image2video_*`, `*_i2i`, `*_i2v` and `reference2video_*`, and any capability whose schema lists an image, video or reference parameter, need a source asset even when the schema does not mark it required.
 
 ### Uploading a local file
@@ -159,11 +159,11 @@ The file bytes never go through the MCP server. `create_upload` hands you a pres
 
 1. **Hash the file locally.** `content_hash` is the SHA-1 of the whole file; `pre_hash` is the SHA-1 of its first 1 MiB. For a file of 1 MiB or less the two are identical. Also read the exact byte size.
 2. **`create_upload`** with `file_name`, `file_size`, `content_hash`, `pre_hash`, and optionally `content_type`, `dest_path`, `description`.
-   - `rapid_upload: true` and `state: "completed"` means the drive already had that exact content. **You are done** — take `asset_id` and do not PUT anything, do not call `complete_upload`.
+   - `rapid_upload: true` and `state: "completed"` means the drive already had that exact content. **You are done** — take `file_id` and do not PUT anything, do not call `complete_upload`.
    - Otherwise you get `upload_url`, `upload_method`, `upload_headers` and `expires_at`.
 3. **PUT the raw bytes** to `upload_url` with `upload_method`, sending every entry of `upload_headers` exactly as given. **Do not add, drop, rename, reorder or re-case those headers, and do not rewrite the URL** — the storage service validates a signature over them and answers 403 on any edit.
 4. **`complete_upload`** with the returned `upload_id`. It verifies the stored object against the declared size and hash, registers the drive file, and returns `file_id`, `asset_id` and `size`. It is idempotent, so a repeat call is safe.
-5. Pass the returned `asset_id` into the generation parameter.
+5. Pass the returned `file_id` into the generation parameter.
 
 Rules:
 
