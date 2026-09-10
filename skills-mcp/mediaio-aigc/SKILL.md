@@ -1,5 +1,5 @@
 ---
-name: mediaio-cloud-gen
+name: mediaio-aigc
 metadata:
   version: "0.1.0"
 description: |
