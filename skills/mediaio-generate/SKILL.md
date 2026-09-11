@@ -297,15 +297,22 @@ Workflows and effects are separate discovery views not covered by the static cat
    mediaio generate wait <task_id> --timeout 20m --interval 3s
    ```
 
-   When the deliverable is a local file, let the CLI do the download in the same step and skip URL handling entirely:
-
-   ```bash
-   mediaio generate wait <task_id> --timeout 20m --download "$(mktemp -d)"
-   ```
-
 7. **Deliver.** Retrieve every result file with the CLI, never by re-entering, re-fetching, or hand-copying a URL. Do not run `curl`/`wget`/a browser against a result URL yourself, even to "double check" it — that is exactly how a 430-510 character signed URL gets corrupted. If a fetch fails, re-run `generate download`/`generate query` for a fresh signature instead of retrying your own copy of the URL.
 
-   1. Create a writable temporary directory with `mktemp -d`.
+   1. Create a writable temporary directory using the current shell's native mechanism:
+
+      ```sh
+      # POSIX shell (macOS/Linux)
+      tmp_dir=$(mktemp -d)
+      ```
+
+      ```powershell
+      # PowerShell (Windows)
+      $tmp_dir = Join-Path ([System.IO.Path]::GetTempPath()) ("mediaio-" + [guid]::NewGuid().ToString())
+      New-Item -ItemType Directory -Path $tmp_dir -Force | Out-Null
+      ```
+
+      Do not run `mktemp` from PowerShell. Use the resulting `$tmp_dir` with the commands below.
    2. Download the task's results into it:
 
       ```bash
@@ -314,9 +321,12 @@ Workflows and effects are separate discovery views not covered by the static cat
 
       Every non-comment line is a local path; each file is preceded by a `# file[N] ...` metadata line and a `# url[N] <url>` line carrying the source URL. Use `grep -v '^#'` to keep only the paths. Omit `--index` so every result file is downloaded — a task can produce more than one. Use `--index N` only when the user explicitly wants a single specific result, and `--variant preview` only when they explicitly want the compressed preview instead of the full-resolution file. `--variant original` is the default and is what you should normally deliver.
    3. For **each** downloaded path (not just the first), require a non-empty file, then inspect it with `file --brief --mime-type "$download_path"`. Continue with the image path only for `image/*`. If the CLI-provided filename already carries an accurate extension, keep it; otherwise derive one from common MIME types (`image/png` → `png`, `image/jpeg` → `jpg`, `image/webp` → `webp`, `image/gif` → `gif`). Never label an unknown image as PNG.
-   4. Deliver **every** verified file back to the host as its own local-path Markdown image, in the same order `generate download` printed them, using the standard syntax `![preview](<local-path>)`. A task with N result files means N images in the reply — never stop after the first one. When a local path contains spaces, parentheses, or non-ASCII characters, wrap the target in angle brackets. Prefer the local downloaded file over the remote HTTPS URL.
-   5. Report completion only after providing the local Markdown image snippet, or after establishing that local-path Markdown cannot be used in the current host. In the latter case, explicitly say inline local preview is unavailable, and reuse the `# url[N]` line printed by `generate download` (or the shell capture shown in the result URL guardrail) rather than transcribing the URL.
-   6. Do not remove the temporary directory before the final response is sent, because the host may resolve the local Markdown path when rendering the reply.
+   4. Deliver **every** verified file through the current host's supported local-file or artifact mechanism, in the same order `generate download` printed them. A task with N result files means N delivered files — never stop after the first one. Prefer the local downloaded file over the remote HTTPS URL:
+      - When the host renders local-path Markdown images, use `![preview](<local-path>)`. Wrap a path containing spaces, parentheses, or non-ASCII characters in angle brackets.
+      - When the host requires an exposed artifact or attachment directory, first place the verified file there through the host-supported mechanism, then deliver that resulting local path.
+      - Never substitute a manually copied signed URL merely because a sandbox-local path is not directly renderable.
+   5. Report completion only after every result is exposed through a host-supported local-file or artifact mechanism. If the current host cannot expose local files at all, explicitly say local delivery is unavailable, then reuse the exact `# url[N]` value printed by `generate download` (or the shell capture shown in the result URL guardrail). Never transcribe or reconstruct it.
+   6. Do not remove the temporary directory before the final response is sent, because the host may still need its contents while exposing or rendering the result.
    7. `curl` is a fallback only when `generate download` is unavailable in the installed build. In that case still capture the URL into a shell variable and pass `"$url"` unmodified:
 
       ```bash
@@ -368,7 +378,7 @@ Only the command families printed by the current `mediaio --help` output are exe
 - `missing required flag(s)` or `invalid value` → inspect the live schema and pass only exposed values.
 - `InvalidAccessKeyId`, `SignatureDoesNotMatch`, or an HTTP 403 from the storage host while downloading → the URL was altered or has expired. Do not try to repair it. Re-run `mediaio generate download <task_id>`.
 - `is not downloadable yet: status=...` → the task has not reached a successful terminal state; run `generate wait` first and read `reason_code`/`reason_label`.
-- `already exists; pass --overwrite to replace it` → choose a fresh `--output-dir` (for example a new `mktemp -d`) or pass `--overwrite` deliberately.
+- `already exists; pass --overwrite to replace it` → choose a fresh `--output-dir` using the host-specific temporary-directory rule above, or pass `--overwrite` deliberately.
 - task is accepted but `generate wait` ends in a generic terminal failure → before retrying, check whether the job type needs a source image/video (name contains `image2image`/`image2video`/`img2vid`/`reference2video`, or `model get`/`workflow get` lists an image/video parameter). If no source file was uploaded and passed for such a job, ask the user for one and resubmit; do not blindly retry the identical command. See `references/troubleshooting.md` for the specific error signature.
 - endpoint `404` during create → verify the BIN build routes creation through the configured combo_alg endpoint; do not switch models because this is not a prompt/model-selection error.
 - missing credentials, an HTTP 401, or an explicit token-refresh rejection → run `mediaio auth login`, then pick the original request back up in the same turn with its original prompt and parameters. Losing the request because of a login detour is a failure, not a clean stop.

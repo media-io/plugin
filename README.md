@@ -15,14 +15,16 @@ and does not depend on remote MCP configuration from `media-plugin-api` or
 
 Generated image delivery is host-dependent:
 
-- For image results, download the HTTPS result to a local file, validate it is
-  `image/*`, and return that file using standard Markdown image syntax such as
-  `![preview](</tmp/generated.png>)`.
-- When the local path contains spaces, parentheses, or non-ASCII characters,
-  wrap the Markdown target in angle brackets.
-- Keep the downloaded local file available until the response is rendered.
-- If a host does not render local-path Markdown images, fall back to the HTTPS
-  result URL.
+- Download the HTTPS result to a local file and validate that it is `image/*`.
+- Deliver every verified file through the host's supported local-file or
+  artifact mechanism. When local-path Markdown is supported, use
+  `![preview](</tmp/generated.png>)`; otherwise first place the file in the
+  host's exposed artifact or attachment location and use that resulting path.
+- When a Markdown path contains spaces, parentheses, or non-ASCII characters,
+  wrap the target in angle brackets. Keep the downloaded file available until
+  the response is rendered.
+- If the host cannot expose local files at all, say so explicitly and reuse the
+  exact HTTPS result URL emitted by the CLI; never reconstruct a signed URL.
 
 ## Installation
 
