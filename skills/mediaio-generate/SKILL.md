@@ -181,7 +181,7 @@ Rules:
 A signed Media.io result URL carries a high-entropy storage credential. Rewriting one character breaks it, and the storage service answers `InvalidAccessKeyId` or `SignatureDoesNotMatch` rather than pointing at the typo. Therefore:
 
 1. **Never retype, re-key, summarise, reformat, or hand-edit a result URL.** Do not strip or add query parameters such as `x-oss-process`, and do not "clean up" the URL for readability.
-2. **Prefer `mediaio generate download`.** It resolves the task and fetches the file itself, so the download never depends on you reproducing a signed URL. It echoes the source URL on a `# url[N] <url>` comment line for reference; copy that line verbatim if the user asks for the link.
+2. **Prefer `mediaio generate download`.** It resolves the task and fetches the file itself, so the download never depends on you reproducing a signed URL. It echoes the source URL on a `# url[N] <url>` comment line for reference; copy that value verbatim when delivering the result's download link or when the user asks for it.
 3. If a raw URL is genuinely required, capture it with the shell instead of copying it. The default brief output prints each result URL flush-left on its own line, so it can be captured verbatim:
 
    ```bash
@@ -324,8 +324,8 @@ Workflows and effects are separate discovery views not covered by the static cat
    4. Deliver **every** verified file through the current host's supported local-file or artifact mechanism, in the same order `generate download` printed them. A task with N result files means N delivered files — never stop after the first one. Prefer the local downloaded file over the remote HTTPS URL:
       - When the host renders local-path Markdown images, use `![preview](<local-path>)`. Wrap a path containing spaces, parentheses, or non-ASCII characters in angle brackets.
       - When the host requires an exposed artifact or attachment directory, first place the verified file there through the host-supported mechanism, then deliver that resulting local path.
-      - Never substitute a manually copied signed URL merely because a sandbox-local path is not directly renderable.
-   5. Report completion only after every result is exposed through a host-supported local-file or artifact mechanism. If the current host cannot expose local files at all, explicitly say local delivery is unavailable, then reuse the exact `# url[N]` value printed by `generate download` (or the shell capture shown in the result URL guardrail). Never transcribe or reconstruct it.
+      - Always also provide the matching `# url[N]` value as a plain-text download link for the user. Never use a signed URL as a Markdown image target, and never substitute a manually copied or reconstructed URL.
+   5. Report completion only after every result is exposed through a host-supported local-file or artifact mechanism and its matching download link is included. If the current host cannot expose local files at all, explicitly say local delivery is unavailable, then still provide the exact `# url[N]` value printed by `generate download` (or the shell capture shown in the result URL guardrail). Never transcribe or reconstruct it.
    6. Do not remove the temporary directory before the final response is sent, because the host may still need its contents while exposing or rendering the result.
    7. `curl` is a fallback only when `generate download` is unavailable in the installed build. In that case still capture the URL into a shell variable and pass `"$url"` unmodified:
 
