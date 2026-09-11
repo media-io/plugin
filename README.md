@@ -23,8 +23,10 @@ Generated image delivery is host-dependent:
 - When a Markdown path contains spaces, parentheses, or non-ASCII characters,
   wrap the target in angle brackets. Keep the downloaded file available until
   the response is rendered.
-- If the host cannot expose local files at all, say so explicitly and reuse the
-  exact HTTPS result URL emitted by the CLI; never reconstruct a signed URL.
+- Also provide each result's exact HTTPS download URL emitted by the CLI as a
+  plain-text link. Never use it as a Markdown image target or reconstruct a
+  signed URL. If the host cannot expose local files at all, say so explicitly
+  and still provide that exact download link.
 
 ## Installation
 
