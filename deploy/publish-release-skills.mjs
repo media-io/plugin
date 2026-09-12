@@ -2,9 +2,12 @@
 /**
  * 在公司内部流水线中将本仓库的 skills/ 同步到 media-io/skills 根目录。
  *
+ * 同步前会先用 RELEASE_VERSION 统一改写仓库内所有版本号承载点
+ * （见 deploy/version-stamp.mjs），再从工作区拷贝到目标仓库。
+ *
  * 用法：
- *   node deploy/publish-release.mjs sync-source
- *   node deploy/publish-release.mjs force-github-baseline
+ *   RELEASE_VERSION=0.3.0 node deploy/publish-release-skills.mjs sync-source
+ *   RELEASE_VERSION=0.3.0 node deploy/publish-release-skills.mjs force-github-baseline
  *
  * 本脚本只用于公司内部流水线；不涉及 npm 发布，也不依赖 gh、jq 或 GitHub Actions。
  */
@@ -23,6 +26,8 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+
+import { assertReleaseVersion, stampVersion } from "./version-stamp.mjs";
 
 const packageRoot = resolve(new URL("..", import.meta.url).pathname);
 const skillsDirectory = join(packageRoot, "skills");
@@ -122,12 +127,18 @@ function sourceContext() {
   if (run("git", ["rev-parse", "--is-shallow-repository"]) === "true") {
     fail("Skills checkout 为 shallow repository；请在代码拉取插件中启用完整历史后再发布");
   }
+  // 必须先确认 checkout 干净，之后工作区里唯一允许的差异就是版本号改写。
   if (run("git", ["status", "--porcelain"])) {
     fail("Skills checkout 包含未提交改动，拒绝发布");
   }
 
   const sourceCommit = run("git", ["rev-parse", "HEAD"]);
-  return { sourceCommit, skillNames: sourceSkillNames() };
+
+  const releaseVersion = assertReleaseVersion(requiredEnv("RELEASE_VERSION"));
+  const { changed } = stampVersion(releaseVersion);
+  for (const file of changed) console.log(`[publish] version stamped: ${file}`);
+
+  return { sourceCommit, releaseVersion, skillNames: sourceSkillNames() };
 }
 
 function createGitAskPass(token) {
@@ -196,15 +207,16 @@ function replaceEntry(sourcePath, targetPath) {
   cpSync(sourcePath, targetPath, { recursive: true, errorOnExist: true });
 }
 
-function writeManifest(targetDirectory, sourceCommit, skillNames) {
+function writeManifest(targetDirectory, source) {
   const manifestPath = join(targetDirectory, manifestName);
   const temporaryPath = join(targetDirectory, `${manifestName}.tmp`);
   const manifest = {
     schema_version: 1,
     source_repository: "media-plugin-main",
     source_directory: "skills",
-    source_commit: sourceCommit,
-    managed_skill_names: skillNames,
+    source_commit: source.sourceCommit,
+    source_version: source.releaseVersion,
+    managed_skill_names: source.skillNames,
   };
   writeFileSync(temporaryPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o644 });
   renameSync(temporaryPath, manifestPath);
@@ -227,7 +239,7 @@ function synchronizeManagedSkills(targetDirectory, source) {
   for (const name of source.skillNames) {
     replaceEntry(join(skillsDirectory, name), join(targetDirectory, name));
   }
-  writeManifest(targetDirectory, source.sourceCommit, source.skillNames);
+  writeManifest(targetDirectory, source);
 }
 
 // 仅用于首次建立发布基线。它会删除 GitHub Skills 仓库根目录中除 .git 外的全部内容，
@@ -242,12 +254,12 @@ function forceGithubBaseline(targetDirectory, source) {
   for (const name of source.skillNames) {
     replaceEntry(join(skillsDirectory, name), join(targetDirectory, name));
   }
-  writeManifest(targetDirectory, source.sourceCommit, source.skillNames);
+  writeManifest(targetDirectory, source);
 }
 
-function commitAndPush(targetDirectory, gitAuth, sourceCommit) {
+function commitAndPush(targetDirectory, gitAuth, source) {
   if (!run("git", ["status", "--porcelain"], { cwd: targetDirectory, env: gitAuth.env })) {
-    console.log(`[publish] skills already synced: ${githubBranch} <- ${sourceCommit}`);
+    console.log(`[publish] skills already synced: ${githubBranch} <- ${source.sourceCommit}`);
     return;
   }
 
@@ -260,7 +272,7 @@ function commitAndPush(targetDirectory, gitAuth, sourceCommit) {
     env: gitAuth.env,
   });
   run("git", ["add", "--all"], { cwd: targetDirectory, env: gitAuth.env });
-  run("git", ["-c", "commit.gpgSign=false", "commit", "-m", `chore(skills): sync ${sourceCommit}`], {
+  run("git", ["-c", "commit.gpgSign=false", "commit", "-m", `chore(skills): release v${source.releaseVersion} (${source.sourceCommit})`], {
     cwd: targetDirectory,
     env: gitAuth.env,
   });
@@ -275,7 +287,8 @@ function commitAndPush(targetDirectory, gitAuth, sourceCommit) {
 }
 
 function printUsage() {
-  console.log("用法：node deploy/publish-release.mjs <sync-source|force-github-baseline>");
+  console.log("用法：node deploy/publish-release-skills.mjs <sync-source|force-github-baseline>");
+  console.log("需要环境变量 RELEASE_VERSION 与 GITHUB_TOKEN。");
 }
 
 const operation = process.argv[2];
@@ -299,6 +312,7 @@ try {
   targetDirectory = cloneGithubSkills(gitAuth);
 
   console.log(`[publish] phase: ${operation}`);
+  console.log(`[publish] release version: ${source.releaseVersion}`);
   console.log(`[publish] source commit: ${source.sourceCommit}`);
   console.log(`[publish] skills: ${source.skillNames.join(", ")}`);
 
@@ -307,7 +321,7 @@ try {
   } else {
     forceGithubBaseline(targetDirectory, source);
   }
-  commitAndPush(targetDirectory, gitAuth, source.sourceCommit);
+  commitAndPush(targetDirectory, gitAuth, source);
 } finally {
   if (targetDirectory) rmSync(targetDirectory, { recursive: true, force: true });
   if (askPassDirectory) rmSync(askPassDirectory, { recursive: true, force: true });
