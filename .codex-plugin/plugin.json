@@ -1,13 +1,14 @@
 {
   "name": "media-io",
-  "version": "0.2.6",
+  "version": "0.5.0",
   "description": "Media.io plugin for agent-driven video and image creation workflows.",
   "author": {
     "name": "Media.io",
     "email": "mi_dev@300624.cn",
-    "url": "https://media.io"
+    "url": "https://www.media.io"
   },
-  "homepage": "https://media.io",
+  "homepage": "https://www.media.io/ai/home",
+  "license": "MIT",
   "keywords": [
     "media.io",
     "video",
@@ -28,7 +29,9 @@
     "developerName": "Media.io",
     "category": "Design",
     "capabilities": ["Read", "Write"],
-    "websiteURL": "https://media.io",
+    "websiteURL": "https://www.media.io/ai/home",
+    "privacyPolicyURL": "https://www.media.io/privacy.html",
+    "termsOfServiceURL": "https://www.media.io/terms-of-service.html",
     "defaultPrompt": [
       "Create images in Media.io",
       "Add captions or subtitles to this video",
