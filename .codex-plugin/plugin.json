@@ -7,7 +7,8 @@
     "email": "mi_dev@300624.cn",
     "url": "https://media.io"
   },
-  "homepage": "https://media.io",
+  "homepage": "https://www.media.io/ai/home",
+  "license": "MIT",
   "keywords": [
     "media.io",
     "video",
@@ -28,7 +29,9 @@
     "developerName": "Media.io",
     "category": "Design",
     "capabilities": ["Read", "Write"],
-    "websiteURL": "https://media.io",
+    "websiteURL": "https://www.media.io/ai/home",
+    "privacyPolicyURL": "https://www.media.io/privacy.html",
+    "termsOfServiceURL": "https://www.media.io/terms-of-service.html",
     "defaultPrompt": [
       "Create images in Media.io",
       "Add captions or subtitles to this video",

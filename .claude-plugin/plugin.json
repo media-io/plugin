@@ -7,9 +7,9 @@
     "email": "mi_dev@300624.cn",
     "url": "https://media.io"
   },
-  "homepage": "https://media.io",
+  "homepage": "https://www.media.io/ai/home",
   "repository": "https://github.com/media-io/plugin",
-  "license": "GPL-3.0-only",
+  "license": "MIT",
   "keywords": [
     "media.io",
     "video",

@@ -31,6 +31,7 @@ import { assertReleaseVersion, stampVersion } from "./version-stamp.mjs";
 
 const packageRoot = resolve(new URL("..", import.meta.url).pathname);
 const skillsDirectory = join(packageRoot, "skills");
+const licenseFileName = "LICENSE";
 const githubRepository = "media-io/skills";
 const githubBranch = "main";
 const manifestName = ".mediaio-skills-sync.json";
@@ -127,6 +128,11 @@ function sourceContext() {
   if (run("git", ["rev-parse", "--is-shallow-repository"]) === "true") {
     fail("Skills checkout 为 shallow repository；请在代码拉取插件中启用完整历史后再发布");
   }
+  // 内部技术文档统一放在不对外发布的 media-plugin-api/docs/dev/，本仓不得出现。
+  const trackedTechDocs = run("git", ["ls-files", "--", "*.tech.md"]);
+  if (trackedTechDocs) {
+    fail(`本仓不得包含内部技术文档 *.tech.md（会随发布进入公网），请移到 media-plugin-api/docs/dev/：\n${trackedTechDocs}`);
+  }
   // 必须先确认 checkout 干净，之后工作区里唯一允许的差异就是版本号改写。
   if (run("git", ["status", "--porcelain"])) {
     fail("Skills checkout 包含未提交改动，拒绝发布");
@@ -207,6 +213,13 @@ function replaceEntry(sourcePath, targetPath) {
   cpSync(sourcePath, targetPath, { recursive: true, errorOnExist: true });
 }
 
+// 发布物必须自带许可证，否则 media-io/skills 根目录会是一份没有授权条款的公开代码。
+function syncLicense(targetDirectory) {
+  const sourcePath = join(packageRoot, licenseFileName);
+  if (!pathExists(sourcePath)) fail(`本仓缺少 ${licenseFileName}，拒绝发布无授权条款的 skills`);
+  replaceEntry(sourcePath, join(targetDirectory, licenseFileName));
+}
+
 function writeManifest(targetDirectory, source) {
   const manifestPath = join(targetDirectory, manifestName);
   const temporaryPath = join(targetDirectory, `${manifestName}.tmp`);
@@ -239,6 +252,7 @@ function synchronizeManagedSkills(targetDirectory, source) {
   for (const name of source.skillNames) {
     replaceEntry(join(skillsDirectory, name), join(targetDirectory, name));
   }
+  syncLicense(targetDirectory);
   writeManifest(targetDirectory, source);
 }
 
@@ -254,6 +268,7 @@ function forceGithubBaseline(targetDirectory, source) {
   for (const name of source.skillNames) {
     replaceEntry(join(skillsDirectory, name), join(targetDirectory, name));
   }
+  syncLicense(targetDirectory);
   writeManifest(targetDirectory, source);
 }
 
