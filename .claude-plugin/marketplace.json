@@ -3,7 +3,7 @@
   "description": "Media.io agent skills for video and image creation workflows from Claude Code.",
   "owner": {
     "name": "Media.io",
-    "url": "https://media.io"
+    "url": "https://www.media.io"
   },
   "plugins": [
     {
@@ -11,6 +11,8 @@
       "source": "./",
       "description": "Media.io plugin for agent-driven video and image creation workflows from Claude Code.",
       "version": "0.5.0",
+      "homepage": "https://www.media.io/ai/home",
+      "license": "MIT",
       "skills": [
         "./skills/"
       ]

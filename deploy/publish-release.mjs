@@ -68,6 +68,17 @@ function tryRun(command, args, options = {}) {
   };
 }
 
+function assertNoInternalTechDocs() {
+  // 本仓的内网 git 历史会整体镜像到公网 GitHub（发布提交的第一父就是内网提交），
+  // 历史提交里的文件同样可被检出，因此内部技术文档不能只在发布时从 HEAD 剔除，
+  // 必须从一开始就不进入本仓。统一约定：*.tech.md 只放在不对外发布的
+  // media-plugin-api/docs/dev/。
+  const tracked = run("git", ["ls-files", "--", "*.tech.md"]);
+  if (tracked) {
+    fail(`本仓不得包含内部技术文档 *.tech.md（会随 git 历史进入公网），请移到 media-plugin-api/docs/dev/：\n${tracked}`);
+  }
+}
+
 function sourceContext() {
   for (const command of ["git", "node"]) {
     if (!tryRun(command, ["--version"]).ok) fail(`缺少命令：${command}`);
@@ -75,6 +86,7 @@ function sourceContext() {
   if (run("git", ["rev-parse", "--is-shallow-repository"]) === "true") {
     fail("MAIN checkout 为 shallow repository；请在代码拉取插件中启用完整历史后再发布");
   }
+  assertNoInternalTechDocs();
   // 必须先确认 checkout 干净，之后工作区里唯一允许的差异就是版本号改写。
   if (run("git", ["status", "--porcelain"])) {
     fail("MAIN checkout 包含未提交改动，拒绝发布");

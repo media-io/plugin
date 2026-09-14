@@ -1,38 +1,19 @@
 # Media.io Agent Skills
 
-`media-plugin-main` maintains plugin manifests for both `Codex` and `Claude Code`.
-Each release keeps the Codex manifest, Claude manifest, and shared `skills/` metadata on the same version so both hosts load the same skills snapshot. They share the same `skills/` directory, but each host uses its own manifest:
+Agent skills that drive the [Media.io](https://www.media.io/ai/home) CLI from
+Codex and Claude Code: discover models and workflows, generate images and
+videos, and download the results.
 
-- `Codex`: `.codex-plugin/plugin.json`
-- `Claude Code`: `.claude-plugin/plugin.json`
-- `Shared skills`: `skills/mediaio-generate/SKILL.md`
+## Install
 
-The current `Claude Code` integration reuses a locally installed `mediaio` CLI
-and does not depend on remote MCP configuration from `media-plugin-api` or
-`media-plugin-mcp`.
+Both hosts run the Media.io CLI on your machine, so install and sign in first:
 
-## Image result delivery
-
-Generated image delivery is host-dependent:
-
-- Download the HTTPS result to a local file and validate that it is `image/*`.
-- Deliver every verified file through the host's supported local-file or
-  artifact mechanism. When local-path Markdown is supported, use
-  `![preview](</tmp/generated.png>)`; otherwise first place the file in the
-  host's exposed artifact or attachment location and use that resulting path.
-- When a Markdown path contains spaces, parentheses, or non-ASCII characters,
-  wrap the target in angle brackets. Keep the downloaded file available until
-  the response is rendered.
-- Also provide each result's exact HTTPS download URL emitted by the CLI as a
-  plain-text link. Never use it as a Markdown image target or reconstruct a
-  signed URL. If the host cannot expose local files at all, say so explicitly
-  and still provide that exact download link.
-
-## Installation
+```bash
+npm install -g @mediaio/cli
+mediaio auth login
+```
 
 ### Codex
-
-Install the Media.io skills with:
 
 ```bash
 npx skills add <repository>/skills
@@ -40,93 +21,35 @@ npx skills add <repository>/skills
 
 ### Claude Code
 
-Install the local CLI runtime first:
+Install this repository as a plugin and point the host at `.claude-plugin/`.
 
-```bash
-npm install -g @mediaio/cli
-mediaio auth login
-mediaio version
-```
+The plugin never installs or repairs the CLI for you — make sure `mediaio` is
+already on your `PATH`.
 
-Then install this repository as a `Claude Code` plugin and use
-`.claude-plugin/` as the plugin manifest directory.
+## Skills
 
-> The `Claude Code` plugin does not silently install a second binary. Make sure
-> the `mediaio` command is already available on the current machine before
-> running the skill.
+- **`mediaio-generate`** — discover models, workflows, and effects, submit a
+  generation job, wait for it, and download the result files.
+- **`mediaio-install`** — install or refresh the CLI and the plugin manifests.
 
-## Current Skills
+## Layout
 
-### `mediaio-install`
+| Path | Purpose |
+|---|---|
+| `.codex-plugin/plugin.json` | Codex manifest |
+| `.claude-plugin/plugin.json` | Claude Code manifest |
+| `skills/` | Shared skills used by both hosts |
 
-Install or update the shared Media.io CLI and plugin manifests for Codex or
-Claude Code. Use for setup and refresh flows, not for generation tasks.
+Every release keeps both manifests and the shared skills on the same version so
+each host loads the same snapshot.
 
-### `mediaio-generate`
+## Links
 
-This skill reuses the installed shared `mediaio` CLI to discover and invoke the
-image, video, and workflow generation capabilities currently exposed by the
-binary. Effects can be discovered, but the current BIN still has no `effect get`
-parameter inspection command, so parameter schemas must not be inferred from
-list summaries.
+- Product: <https://www.media.io/ai/home>
+- CLI: <https://www.npmjs.com/package/@mediaio/cli>
+- Terms of Service: <https://www.media.io/terms-of-service.html>
+- Privacy Policy: <https://www.media.io/privacy.html>
 
-Current execution contract:
+## License
 
-```text
-mediaio model|workflow|effect list
-  → mediaio model|workflow get <job_type>
-  → mediaio generate create <job_type> [--param value]... --yes
-  → mediaio generate wait <task_id>
-  → mediaio generate download <task_id> --output-dir <dir>
-```
-
-`--yes` is required because a non-interactive host cannot answer the CLI's
-credit prompt. By default `generate create` prints no cost at all, so a routine
-generation never puts a credit figure in front of a user who did not ask for
-one. `--show-credit` adds the estimate and the balance, and `generate estimate`
-prices a job without submitting it. When to use each — and when to stop for an
-approval — is owned by `skills/mediaio-generate/SKILL.md`.
-
-`generate` subcommands default to `brief` output, so the skill passes no
-`--output` flag. Result files are fetched with `generate download`, which keeps
-signed URLs inside the CLI where they cannot be corrupted by transcription. The
-full output-mode contract lives in `skills/mediaio-generate/SKILL.md` and
-`references/troubleshooting.md`, and is not repeated elsewhere.
-
-The skill does not bundle a second binary, does not silently install the CLI,
-and does not call commands that the current BIN does not yet implement,
-including `marketing-studio`, `generate workflow`, `generate cost`,
-`generate get`, inline `--wait`, or discovery `--json`.
-
-Files such as `skills/mediaio-generate/references/marketing-*.md` are retained
-only as reference material for capability inventory and do not mean the
-corresponding commands are currently available.
-
-## Skill authoring rules
-
-Everything under `skills/` is prompt text consumed by an agent, not project
-documentation. The following constraints apply to every `SKILL.md` and every
-file under `references/`:
-
-- **English only.** No Chinese, and no other non-English prose, anywhere in the
-  skill body, examples, or error tables. Quoted user phrases must be written in
-  English too.
-- **Do not prescribe a reply language.** Never instruct the agent to detect the
-  user's language or to answer in it. The host and the model already handle
-  this, and repeating it wastes context and can conflict with host policy.
-- **State each CLI contract once.** Put a rule in the single place that owns it
-  and link to it from anywhere else. Repeating flag syntax across `SKILL.md`
-  and several `references/` files inflates context and drifts out of sync.
-- **Document the default, not the flag matrix.** Describe what the agent should
-  actually run. Alternative modes that exist only for scripts or diagnostics
-  belong in `references/troubleshooting.md`, mentioned briefly.
-
-These rules are checked by reading the skill files; there is no linter yet.
-
-## Verification
-
-```bash
-mediaio --help
-mediaio model list
-mediaio model get text2image_gpt_image_2
-```
+MIT — see [LICENSE](LICENSE).
