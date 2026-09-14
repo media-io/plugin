@@ -1,7 +1,7 @@
 ---
 name: mediaio-aigc
 metadata:
-  version: "0.5.0"
+  version: "0.3.1-ci.138"
 description: |
   Generate images and videos on Media.io through the connected Media.io MCP
   server. Use for text-to-image, image-to-image, text-to-video,
