@@ -25,7 +25,7 @@ description: |
 
 Submit image and video jobs through the Media.io MCP tools. Tool descriptions and `describe_capability` output are the source of truth; this skill only orchestrates them.
 
-There is no CLI, no local binary, no installation step and no network-approval gate on this path. If the Media.io tools are not available in the current session, say the Media.io MCP server is not connected and stop. Never fall back to shell commands, `curl`, or a local `mediaio` binary to work around a missing tool.
+There is no CLI, no local binary, no installation step and no network-approval gate on this path. If the Media.io tools are not available in the current session, say the Media.io MCP server is not connected and stop. Do not run a generation through a local `mediaio` binary that this path is supposed to run through the MCP tools. Downloading a finished result file with whatever tools the host gives you is a normal part of delivery, not a workaround — see the delivery rules below.
 
 ## Tools
 
