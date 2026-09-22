@@ -1,12 +1,12 @@
 {
   "catalog_schema_version": 1,
-  "generated_at": "2026-08-27T13:21:28.571Z",
+  "generated_at": "2026-09-22T02:41:16.857Z",
   "environment": "prod",
   "vapi": "https://vapi.media.io",
-  "cli_version": "dev",
+  "cli_version": "0.5.0",
   "source_command": "mediaio --production-env prod model list --output json",
-  "model_count": 109,
-  "snapshot_digest": "d19322022f5e9c7d",
+  "model_count": 115,
+  "snapshot_digest": "290dbb71acf797e9",
   "models": [
     {
       "job_type": "image2image_banana",
@@ -28,6 +28,20 @@
       "type": "image",
       "fun_module": "image2image",
       "description": "Superior photorealism, sharp text rendering, and advanced instruction following."
+    },
+    {
+      "job_type": "image2image_gpt_image_2.5",
+      "display_name": "GPT Image 2.5 Flare",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Stunning everyday images, fast."
+    },
+    {
+      "job_type": "image2image_gpt_image_2.5_sunburst",
+      "display_name": "GPT Image 2.5 Sunburst",
+      "type": "image",
+      "fun_module": "image2image",
+      "description": "Exceptional quality, precise edits."
     },
     {
       "job_type": "image2image_media_1.0",
@@ -121,27 +135,6 @@
       "description": "A video model featuring realistic physics, consistent characters, and cinematic outputs."
     },
     {
-      "job_type": "image2video_kling_2.1",
-      "display_name": "Kling 2.1",
-      "type": "video",
-      "fun_module": "image2video",
-      "description": "Balanced realism & speed."
-    },
-    {
-      "job_type": "image2video_kling_2.1_head_and_tail",
-      "display_name": "Kling 2.1",
-      "type": "video",
-      "fun_module": "image2video",
-      "description": "Balanced realism & speed."
-    },
-    {
-      "job_type": "image2video_kling_2.1_master",
-      "display_name": "Kling 2.1 Master",
-      "type": "video",
-      "fun_module": "image2video",
-      "description": "Pro-level realism."
-    },
-    {
       "job_type": "image2video_kling_2.5_turbo",
       "display_name": "Kling 2.5 Turbo",
       "type": "video",
@@ -226,14 +219,21 @@
       "description": "Enhanced quality, smoother and truer."
     },
     {
-      "job_type": "image2video_minimax_h3",
+      "job_type": "image2video_minimax_h3_head_and_tail_switch",
       "display_name": "MiniMax H3",
       "type": "video",
       "fun_module": "image2video",
       "description": "Native 2K video generation with perfectly synchronized audio and dialogue."
     },
     {
-      "job_type": "image2video_minimax_h3_head_and_tail",
+      "job_type": "image2video_minimax_h3_max",
+      "display_name": "MiniMax H3 Max",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Native high-definition video generation with synchronized audio, dialogue, and ultra-fast sub-realtime inference."
+    },
+    {
+      "job_type": "image2video_minimax_h3_switch",
       "display_name": "MiniMax H3",
       "type": "video",
       "fun_module": "image2video",
@@ -282,6 +282,20 @@
       "description": "Rapid creation with balanced cost."
     },
     {
+      "job_type": "image2video_tomoviee4_head_and_tail_switch",
+      "display_name": "ToMoviee 4.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation."
+    },
+    {
+      "job_type": "image2video_tomoviee4_switch",
+      "display_name": "ToMoviee 4.0",
+      "type": "video",
+      "fun_module": "image2video",
+      "description": "Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation."
+    },
+    {
       "job_type": "image2video_tomoviee_2.0",
       "display_name": "ToMoviee 2.0",
       "type": "video",
@@ -290,7 +304,7 @@
     },
     {
       "job_type": "image2video_tomoviee_2.0_fast",
-      "display_name": "Tomoviee 2.0 Fast",
+      "display_name": "ToMoviee 2.0 Fast",
       "type": "video",
       "fun_module": "image2video",
       "description": "Fastest video generation. Lowest cost. Unlimited access for Pro users."
@@ -311,17 +325,10 @@
     },
     {
       "job_type": "image2video_tomoviee_3.0",
-      "display_name": "Tomoviee 3.0",
+      "display_name": "ToMoviee 3.0",
       "type": "video",
       "fun_module": "image2video",
       "description": "Superior character consistency, stronger prompt adherence, and dynamic motion control."
-    },
-    {
-      "job_type": "image2video_tomoviee_4.0",
-      "display_name": "Tomoviee-V4 Pro",
-      "type": "video",
-      "fun_module": "image2video",
-      "description": "Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation."
     },
     {
       "job_type": "image2video_tomusic_1_0",
@@ -485,7 +492,7 @@
       "description": "Max creativity with Exceptional Value."
     },
     {
-      "job_type": "image2video_minimax_h3_reference_image",
+      "job_type": "image2video_minimax_h3_reference_image_switch",
       "display_name": "MiniMax H3",
       "type": "video",
       "fun_module": "reference2video",
@@ -511,6 +518,13 @@
       "type": "video",
       "fun_module": "reference2video",
       "description": "Create coherent 30-second videos with up to 50 multimodal references."
+    },
+    {
+      "job_type": "image2video_tomoviee4_reference_image_switch",
+      "display_name": "ToMoviee 4.0",
+      "type": "video",
+      "fun_module": "reference2video",
+      "description": "Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation."
     },
     {
       "job_type": "image2video_tomoviee_2.5_reference_image",
@@ -546,6 +560,20 @@
       "type": "image",
       "fun_module": "text2image",
       "description": "Superior photorealism, sharp text rendering, and advanced instruction following."
+    },
+    {
+      "job_type": "text2image_gpt_image_2.5",
+      "display_name": "GPT Image 2.5 Flare",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Stunning everyday images, fast."
+    },
+    {
+      "job_type": "text2image_gpt_image_2.5_sunburst",
+      "display_name": "GPT Image 2.5 Sunburst",
+      "type": "image",
+      "fun_module": "text2image",
+      "description": "Exceptional quality, precise edits."
     },
     {
       "job_type": "text2image_nano_banana_2",
@@ -591,7 +619,7 @@
     },
     {
       "job_type": "text2image_tomoviee_2.0",
-      "display_name": "Tomoviee 2.0",
+      "display_name": "ToMoviee 2.0",
       "type": "image",
       "fun_module": "text2image",
       "description": "High-res imagery with fast, precise generation."
@@ -674,7 +702,14 @@
       "description": "Enhanced quality, smoother and truer."
     },
     {
-      "job_type": "text2video_minimax_h3",
+      "job_type": "text2video_minimax_h3_max",
+      "display_name": "MiniMax H3 Max",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Native high-definition video generation with synchronized audio, dialogue, and ultra-fast sub-realtime inference."
+    },
+    {
+      "job_type": "text2video_minimax_h3_switch",
       "display_name": "MiniMax H3",
       "type": "video",
       "fun_module": "text2video",
@@ -700,6 +735,13 @@
       "type": "video",
       "fun_module": "text2video",
       "description": "Rapid creation with balanced cost."
+    },
+    {
+      "job_type": "text2video_tomoviee4_switch",
+      "display_name": "ToMoviee 4.0",
+      "type": "video",
+      "fun_module": "text2video",
+      "description": "Maximum value supporting 2K video with perfectly synchronized audio and dialogue for accessible creation."
     },
     {
       "job_type": "text2video_tomoviee_2.0",

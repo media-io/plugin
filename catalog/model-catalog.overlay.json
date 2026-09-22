@@ -53,17 +53,45 @@
       "stability": "review"
     },
     {
+      "job_type": "text2image_gpt_image_2.5_sunburst",
+      "tier": "unknown",
+      "inputs": ["prompt"],
+      "why": "Newest GPT Image generation, quality-first variant. Pick it when the user asks for the best achievable quality or names Sunburst. A bare `GPT Image 2.5` is ambiguous between the two variants — list both and let the user choose.",
+      "stability": "review"
+    },
+    {
+      "job_type": "text2image_gpt_image_2.5",
+      "tier": "unknown",
+      "inputs": ["prompt"],
+      "why": "Newest GPT Image generation, speed-first variant (display name GPT Image 2.5 Flare). Pick it when the user wants a strong everyday image quickly or names Flare. Note the job_type has no `_flare` suffix.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_gpt_image_2.5_sunburst",
+      "tier": "unknown",
+      "inputs": ["images", "prompt"],
+      "why": "Newest GPT Image generation with a reference image, quality-first variant. Pick it for precise, instruction-faithful edits to an existing image, or when the user names Sunburst.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2image_gpt_image_2.5",
+      "tier": "unknown",
+      "inputs": ["images", "prompt"],
+      "why": "Newest GPT Image generation with a reference image, speed-first variant (display name GPT Image 2.5 Flare). Pick it for fast everyday edits or when the user names Flare. Note the job_type has no `_flare` suffix.",
+      "stability": "review"
+    },
+    {
       "job_type": "text2image_gpt_image_2",
       "tier": "unknown",
       "inputs": ["prompt"],
-      "why": "Use when text must be rendered accurately inside the image, or the composition is unusually complex.",
+      "why": "Previous GPT Image generation. Use when text must be rendered accurately inside the image, or the composition is unusually complex.",
       "stability": "review"
     },
     {
       "job_type": "image2image_gpt_image_2",
       "tier": "unknown",
       "inputs": ["images", "prompt"],
-      "why": "Use with a reference image when text must be rendered accurately.",
+      "why": "Previous GPT Image generation. Use with a reference image when text must be rendered accurately.",
       "stability": "review"
     },
     {
@@ -114,10 +142,57 @@
       "inputs": ["image", "prompt"],
       "why": "Strong physical simulation: shattering, fluids, collisions.",
       "stability": "review"
+    },
+    {
+      "job_type": "text2video_minimax_h3_switch",
+      "tier": "unknown",
+      "inputs": ["prompt"],
+      "why": "Text-to-video with natively synchronized audio and spoken dialogue at 2K. The job_type ends in `_switch`; the older suffix-less name is offline.",
+      "stability": "review"
+    },
+    {
+      "job_type": "text2video_minimax_h3_max",
+      "tier": "unknown",
+      "inputs": ["prompt"],
+      "why": "Fastest MiniMax H3 tier for text-to-video: native HD with synchronized audio and dialogue, sub-realtime inference. Unlike the plain H3 entry this job_type has no `_switch` suffix.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_minimax_h3_switch",
+      "tier": "unknown",
+      "inputs": ["image", "prompt"],
+      "why": "Image-to-video with natively synchronized audio and spoken dialogue at 2K. Its starting-image parameter is `--init_image`, not the `--images` used by most video models.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_minimax_h3_max",
+      "tier": "unknown",
+      "inputs": ["image", "prompt"],
+      "why": "Fastest MiniMax H3 tier for image-to-video: native HD with synchronized audio and dialogue, sub-realtime inference. Also takes `--init_image`, and the job_type has no `_switch` suffix.",
+      "stability": "review"
+    },
+    {
+      "job_type": "image2video_minimax_h3_reference_image_switch",
+      "tier": "unknown",
+      "inputs": ["images", "prompt"],
+      "why": "Multi-reference video with synchronized audio and dialogue; belongs to the reference2video module even though the job_type carries an image2video prefix. Takes repeated `--images`.",
+      "stability": "review"
     }
   ],
   "routing": {
     "text2image": [
+      {
+        "when": "The user names GPT Image 2.5 Sunburst, or asks for the best achievable image quality regardless of speed",
+        "job_type": "text2image_gpt_image_2.5_sunburst",
+        "rationale": "2026-09 上线的 GPT Image 2.5 质量档；registry 描述 Exceptional quality, precise edits。",
+        "stability": "review"
+      },
+      {
+        "when": "The user names GPT Image 2.5 Flare, or wants a strong everyday image with the fastest turnaround",
+        "job_type": "text2image_gpt_image_2.5",
+        "rationale": "2026-09 上线的 GPT Image 2.5 速度档；registry 描述 Stunning everyday images, fast。job_type 无 _flare 后缀。",
+        "stability": "review"
+      },
       {
         "when": "Text must be rendered accurately in the image, or the composition is unusually complex",
         "job_type": "text2image_gpt_image_2",
@@ -138,6 +213,18 @@
       }
     ],
     "image2image": [
+      {
+        "when": "The user names GPT Image 2.5 Sunburst, or asks for precise, instruction-faithful edits at the best achievable quality",
+        "job_type": "image2image_gpt_image_2.5_sunburst",
+        "rationale": "与 text2image 同档位，仅输入形态不同。",
+        "stability": "review"
+      },
+      {
+        "when": "The user names GPT Image 2.5 Flare, or wants a fast everyday edit of the reference image",
+        "job_type": "image2image_gpt_image_2.5",
+        "rationale": "与 text2image 同档位，仅输入形态不同；job_type 无 _flare 后缀。",
+        "stability": "review"
+      },
       {
         "when": "Text must be rendered accurately in the image, or the composition is unusually complex",
         "job_type": "image2image_gpt_image_2",
@@ -165,15 +252,45 @@
     ],
     "video": [
       {
+        "when": "Several reference images AND the user names MiniMax H3, or wants synchronized dialogue and audio driven by multiple references",
+        "job_type": "image2video_minimax_h3_reference_image_switch",
+        "rationale": "必须排在通用多参考规则之前，否则点名 H3 + 多参考图时永远落到 Seedance。属 reference2video 模块，job_type 却以 image2video_ 开头。",
+        "stability": "review"
+      },
+      {
         "when": "Multi-modal reference with several reference images",
         "job_type": "image2video_seedance_2.5_reference_image",
         "rationale": "唯一支持多参考图的档位，属 reference2video 模块。",
         "stability": "stable"
       },
       {
+        "when": "A single starting image AND the user names MiniMax H3 Max, or wants synchronized dialogue with the fastest turnaround",
+        "job_type": "image2video_minimax_h3_max",
+        "rationale": "H3 提速档；起始图参数是 --init_image。",
+        "stability": "review"
+      },
+      {
+        "when": "A single starting image AND the user names MiniMax H3, or wants native 2K video with synchronized dialogue and audio",
+        "job_type": "image2video_minimax_h3_switch",
+        "rationale": "H3 图生视频主档；起始图参数是 --init_image。旧的 image2video_minimax_h3 已下线。",
+        "stability": "review"
+      },
+      {
+        "when": "No input image AND the user names MiniMax H3 Max, or wants synchronized dialogue with the fastest turnaround",
+        "job_type": "text2video_minimax_h3_max",
+        "rationale": "H3 文生视频提速档；job_type 无 _switch 后缀。",
+        "stability": "review"
+      },
+      {
+        "when": "No input image AND the user names MiniMax H3, or wants native 2K video with synchronized dialogue and audio",
+        "job_type": "text2video_minimax_h3_switch",
+        "rationale": "H3 文生视频主档，也是 video 槽位里唯一的纯文生视频入口。旧的 text2video_minimax_h3 已下线。",
+        "stability": "review"
+      },
+      {
         "when": "Long video (around 30s), audio needed, or cinematic quality",
         "job_type": "image2video_seedance _2.5",
-        "rationale": "V0.5 需求文档指定的长视频与电影级档；job_type 含空格。",
+        "rationale": "V0.5 需求文档指定的长视频与电影级档；job_type 含空格。H3 规则排在前面，带人声对白的诉求先被 H3 接走。",
         "stability": "stable"
       },
       {
@@ -205,6 +322,9 @@
     "视频模块为『已查未见』而非『未查证』：页面仅有折扣标签，无任何 VIP FREE 或 Ltd Free 标记，故 image2video / text2video / reference2video 全部维持 unknown。",
     "折扣百分比（50% / 28% / 60% 等）不进入 tier：tier 只表达免费档位语义，折扣是计价细节，一律以 generate estimate 为准。",
     "未带免费徒章的模型目前统一留 unknown：它们应当是正常扣积分的模型，但枚举里没有表达『收费』的值，暂不自行新增。",
+    "GPT Image 2.5（2026-09 上线）两个变体的 job_type 与显示名错位：Flare 是 *_gpt_image_2.5（无 _flare 后缀），Sunburst 是 *_gpt_image_2.5_sunburst。两者在 registry 的 tier 字段均为 paid，本文件按既有口径记 unknown。",
+    "MiniMax H3（2026-09 换代）：旧的 image2video_minimax_h3 / _head_and_tail / _reference_image 与 text2video_minimax_h3 已从生产下线，替换为带 _switch 后缀的同名档；但 *_minimax_h3_max 两条没有 _switch 后缀。六条在 registry 的 tier 均为 paid。",
+    "image2video_minimax_h3_head_and_tail_switch（首尾帧档，显示名同为 MiniMax H3）未进精选：它的输入形态是首帧+尾帧，与本次需求的文生/图生/参考生三类都不同，需要时再从全量索引取。",
     "页面列表中的 Seedream 5.0 Pro / Seedream 5.0 Lite / Seedream 4.0 / Wan 2.7 Pro / Wan 2.7 / Nano Banana 均已在 registry 快照中命中，页面与快照无缺口；这些条目未带免费徽章，维持 unknown。",
     "页面标签随地区、登录态、会员态与活动变化，本文件记录的是取证当时的快照，不是长期承诺。",
     "tier 标为 unknown 的条目尚未确认权限等级；实际是否扣费以 generate estimate 与服务端结果为准。"

@@ -31,6 +31,8 @@
 - `Missing required params: <media param>` — the job needs a source file that was never uploaded. Check the parameter name with `mediaio model get <job_type>`, upload the file with `mediaio upload create`, then pass the returned `file_id`.
 - `Invalid values: <param>=<v> (allowed: ...)` — pick from allowed enum.
 - `Unknown params: <name>` — schema doesn't accept this flag. Run `mediaio model get <jst>` and check.
+- `MCP credit calculate endpoint returned 200: workflow field duration default invalid` — the job type declares `--duration` (and usually `--resolution`) with no workflow default, so omitting them makes the server-side estimate fail. Pass both explicitly and retry, for example `--duration 5 --resolution 2K`. Seen on every MiniMax H3 `*_switch` entry.
+- An estimate that comes back as `0 credit(s)` for a paid video model usually means a sizing parameter was omitted rather than that the job is free. Re-run the estimate with `--duration` and `--resolution` set before quoting any cost to the user.
 
 ## Host image delivery
 

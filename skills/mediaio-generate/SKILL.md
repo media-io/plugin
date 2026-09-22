@@ -356,6 +356,59 @@ Do not replace this with the legacy short name `gpt_image_2`; it is not the curr
 
 For image-to-image GPT Image 2, upload each source first and use the live repeated flag `--images <file_id>` with `image2image_gpt_image_2`.
 
+### GPT Image 2.5
+
+The newer GPT Image generation ships as two separate variants per module, and their `job_type` values do not match their display names:
+
+| Display name | Text to image | Image to image |
+| --- | --- | --- |
+| GPT Image 2.5 Flare | `text2image_gpt_image_2.5` | `image2image_gpt_image_2.5` |
+| GPT Image 2.5 Sunburst | `text2image_gpt_image_2.5_sunburst` | `image2image_gpt_image_2.5_sunburst` |
+
+Flare has **no** `_flare` suffix — never invent one, and never drop the `.5`. Both variants expose the same flags as GPT Image 2 (`--prompt`, `--size`, `--quality`, `--output_format`, `--n`, `--model`, plus repeated `--images` in the image-to-image module), but their `--model` workflow defaults differ (`gpt-image-2.5-flare` vs `gpt-image-2.5-sunburst`), so leave `--model` alone unless the user asks for something specific. Still run `mediaio model get <job_type>` before submitting.
+
+```bash
+mediaio model get text2image_gpt_image_2.5_sunburst
+mediaio generate create text2image_gpt_image_2.5_sunburst \
+  --prompt "a warm, photorealistic portrait of a golden retriever at sunset" \
+  --quality high \
+  --output_format png \
+  --yes
+```
+
+When the user just says "GPT Image 2.5" without naming a variant, the request is ambiguous: show both rows above and let them choose instead of guessing.
+
+## Verified video generation
+
+### MiniMax H3
+
+MiniMax H3 is the video family with natively synchronized audio and spoken dialogue. It ships one entry per input form, and the identifiers are irregular:
+
+| Display name | Text to video | Image to video | Multi-reference to video |
+| --- | --- | --- | --- |
+| MiniMax H3 | `text2video_minimax_h3_switch` | `image2video_minimax_h3_switch` | `image2video_minimax_h3_reference_image_switch` |
+| MiniMax H3 Max | `text2video_minimax_h3_max` | `image2video_minimax_h3_max` | — |
+
+Three traps here, all confirmed against live `model get`:
+
+- The plain H3 entries end in `_switch`; the Max entries do **not**. Never add or drop that suffix to reach the variant you want.
+- The multi-reference entry belongs to the `reference2video` module but its identifier still begins with `image2video_`. Do not "correct" it to `reference2video_*`.
+- The image-to-video entries take their starting frame through `--init_image`, not the repeated `--images` that ToMoviee and Seedance use. Only the multi-reference entry uses repeated `--images`.
+- The `_switch` entries declare `--duration` and `--resolution` with no workflow default. Omitting them makes `generate estimate` fail with `workflow field duration default invalid`, and `image2video_minimax_h3_max` silently estimates `0 credit(s)` without `--resolution`. Always pass both, then quote the cost.
+
+```bash
+mediaio model get image2video_minimax_h3_switch
+mediaio upload create ./first-frame.png
+mediaio generate create image2video_minimax_h3_switch \
+  --prompt "the woman turns to camera and says hello" \
+  --init_image <file_id> \
+  --duration 5 \
+  --resolution 2K \
+  --yes
+```
+
+The suffix-less `text2video_minimax_h3`, `image2video_minimax_h3`, `image2video_minimax_h3_head_and_tail` and `image2video_minimax_h3_reference_image` are offline; `model get` on any of them fails with `model "..." not found`. There is a separate first-and-last-frame entry, `image2video_minimax_h3_head_and_tail_switch`, that shares the MiniMax H3 display name — use it only when the user supplies both a first and a last frame.
+
 ## Current capability boundary
 
 Only the command families printed by the current `mediaio --help` output are executable, and only the `job_type` values present in `references/model-catalog.md` (or returned by live discovery) exist. The migrated reference set also describes surfaces that are not part of the current BIN:
