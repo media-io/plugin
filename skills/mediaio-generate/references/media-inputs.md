@@ -82,6 +82,8 @@ mediaio generate wait <task_id> --timeout 20m --interval 3s
 mediaio generate download <task_id> --output-dir "$tmp_dir"
 ```
 
+The same flow applies to the GPT Image 2.5 variants — `image2image_gpt_image_2.5` (GPT Image 2.5 Flare) and `image2image_gpt_image_2.5_sunburst` (GPT Image 2.5 Sunburst). Both take the same repeated `--images` parameter. Copy the identifier exactly: Flare carries no `_flare` suffix.
+
 ## Repeated inputs
 
 Repeat a parameter only when the live schema marks it as repeated. For example, the verified GPT Image 2 image-to-image schema accepts repeated `--images` values:
